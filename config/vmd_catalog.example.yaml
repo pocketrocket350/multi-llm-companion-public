@@ -1,0 +1,32 @@
+# 拡張可能なモーションライブラリのVMDカタログ見本です。
+# VMD本体は同梱しません。利用者が権利を確認したファイルだけlocalへ置いてください。
+motions:
+  example_nod:
+    # プロジェクトフォルダーから見たlocal内のパスです。
+    file: local/motions/example_nod.vmd
+    # motion_typeは用途、actionはLLMが返せる抽象動作です。
+    motion_type: reaction
+    action: nod
+    moods: [neutral, happy]
+    energy: low
+    weight: 1
+    # 音源が必須のVMDは、音源がない間は候補から外れます。
+    audio_required: false
+    category: head
+    body_mask:
+      - head
+      - neck
+    duration_seconds: 1.0
+    loop: false
+    intensity_scale: 0.6
+    cooldown_seconds: 8
+    license_record: local/licenses/example_nod.yaml
+    compatibility:
+      # PMX内部のモデル名、必須ボーン、必須モーフのどれか一つ以上が必要です。
+      model_names:
+        - あなたのモデル内部名
+      required_bones:
+        - 頭
+      required_morphs: []
+    # 見本VMDは同梱されていないため、初期状態では選択できません。
+    enabled: false

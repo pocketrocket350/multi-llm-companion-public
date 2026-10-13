@@ -1,0 +1,42 @@
+# 音声機能を使うときだけ enabled を true にします。
+speech_recognition:
+  enabled: false
+  # whisperは高精度、voskは軽量です。
+  provider: whisper
+  model_path: local/models/vosk-model-small-ja-0.22
+  input_device: null
+  sample_rate: 16000
+  silence_threshold: 0.015
+  silence_duration: 1.2
+  max_recording_duration: 30
+  partial_interval: 2.5
+  whisper_model: small
+  whisper_device: cpu
+  whisper_compute_type: int8
+
+voice_output:
+  enabled: false
+  provider: voisona_talk
+  base_url: http://127.0.0.1:32766/api/talk/v1
+  # 値そのものではなく、Windows環境変数の名前だけを書きます。
+  username_env: VOISONA_TALK_USERNAME
+  password_env: VOISONA_TALK_PASSWORD
+  voice_name_env: VOISONA_TALK_VOICE_NAME
+  language: ja_JP
+  timeout: 15
+  # Windowsの音声機器を準備してから本文を流すまでの短い無音です。
+  # 音声の先頭が欠ける場合に使います。通常は0.12秒で構いません。
+  playback_preroll: 0.12
+  # auto はVoiSona Talkが返す音素時刻を優先します。取得できない場合は推定へ戻ります。
+  lip_sync_timing_mode: auto
+  # 推定へ戻った場合だけ使う調整値です。
+  # WAVの実再生開始後に口形だけを遅らせる値です。通常は0で構いません。
+  lip_sync_start_delay: 0.0
+  # 音素時刻がない場合の文字間隔の比率です。WAV全体の長さへ自動調整されます。
+  lip_sync_character_duration: 0.22
+  # 第43段階: 未設定またはfalseなら、第42段階までと同じ音声リクエストです。
+  expression:
+    enabled: false
+    # 感情から作った音声専用強度へ掛ける、話速と抑揚の安全な最大変化幅です。
+    max_speed_change: 0.12
+    max_intonation_change: 0.30

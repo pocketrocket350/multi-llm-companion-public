@@ -1,0 +1,117 @@
+# オリジナルの女の子風アバター表示です。既存キャラクターの再現には使わないでください。
+display_name: 紬
+hair_color: "#684765"
+outfit_color: "#b87aa4"
+accent_color: "#d99ac1"
+
+# 第10段階の3Dアバター接続基盤です。初期状態では2D表示だけを使います。
+# mock は外部通信や3Dモデル読込を行わず、将来の3D命令だけを確認する方式です。
+# PMXを表示する場合は provider を pmx_preview にし、モデルを local/models/mmd 内へ置きます。
+three_d:
+  enabled: false
+  provider: mock
+  model_path: ""
+  # 第33段階: 外部VMDはカタログへ登録し、識別名で選びます。
+  # ファイルを直接指定するvmd_pathは安全確認を通らないため使用できません。
+  vmd_catalog_path: local/vmd_catalog.yaml
+  # 例: nod_small。空欄ならVMDを読み込みません。
+  vmd_motion_id: ""
+  # trueにすると、カタログ内の有効なtalk・reaction・danceを自動登録します。
+  # 一度有効にすれば、カタログへメタデータを追加するだけで候補を増やせます。
+  motion_library_enabled: false
+  # 第34段階: 会話中に選択できるVMD識別名です。権利・PMX互換性を起動時に確認します。
+  # 未登録なら、waveとnodは従来の軽量なボーン動作へ安全に戻ります。
+  gesture_motion_ids: []
+  gesture_policy:
+    enabled: true
+    # 動作同士の最低間隔です。
+    min_interval_seconds: 3.5
+    # 同じ意味の動作を再使用するまでの時間です。
+    same_gesture_cooldown_seconds: 20
+    # 同じ身体部位・分類の動作を再使用するまでの時間です。
+    same_category_cooldown_seconds: 6
+    # 腕や全身を大きく使う動作の1分間上限です。0なら上限を使いません。
+    max_large_per_minute: 2
+    # 同じVMDを繰り返さないため、原則として直近何件を候補から外すかです。
+    recent_motion_count: 5
+  # legacy_pmx_preview は現在の確認用表示です。
+  # mmd_runtime は第24段階で用意した本格MMD描画用の入口です。
+  # 現時点では本格MMD描画は未実装のため、選んでも簡易表示へ安全に戻ります。
+  renderer: legacy_pmx_preview
+  fallback_renderer: legacy_pmx_preview
+  # low=輪郭線・平滑化なし、standard=標準、high=高品質です。
+  # MSAAを利用できないPCでは、標準は1.5倍、高品質は2倍の内部画面をGPUで縮小します。
+  # 大きすぎる画面ではGPUメモリを守るため、自動的に安全な倍率へ下がります。
+  render_quality: standard
+  # 第36段階: 表情の意味と、モデル固有のPMX名を分けます。
+  # ここではキャラクター共通の表情と基準強度だけを書きます。
+  expression_presets:
+    neutral_soft:
+      morphs:
+        soft_smile: 0.06
+    gentle_smile:
+      morphs:
+        smile: 0.35
+        eye_smile: 0.18
+        blush: 0.04
+    sad_soft:
+      morphs:
+        worried_brow: 0.22
+        mouth_sad: 0.08
+    angry_soft:
+      morphs:
+        angry_brow: 0.30
+    embarrassed_soft:
+      morphs:
+        blush: 0.25
+        soft_smile: 0.08
+    surprised_soft:
+      morphs:
+        surprised_eye: 0.30
+        mouth_surprised: 0.20
+  emotion_presets:
+    neutral: neutral_soft
+    happy: gentle_smile
+    sad: sad_soft
+    angry: angry_soft
+    embarrassed: embarrassed_soft
+    surprised: surprised_soft
+  # PMXモデルごとに、実際のモーフ名・ボーン名・動作名へ書き換えてください。
+  # 第17段階では、頂点形式の表情・口モーフをメッシュへ反映します。
+  # PMX変形順・IK制限・固定刻み衝突物理・VMD再生に対応します。
+  mmd_mapping:
+    # 左側はプリセット内の役割名、右側はPMX内に実在するモーフ名です。
+    # 存在しない右側の名前は適用されません。推測せず、モデルの候補名を確認してください。
+    expression_morphs:
+      soft_smile: "微笑み"
+      smile: "笑顔"
+      eye_smile: "にこり"
+      blush: "頬染め"
+      worried_brow: "困る"
+      mouth_sad: "口角下げ"
+      angry_brow: "怒り"
+      surprised_eye: "びっくり"
+    # 旧設定との互換用です。新しく設定する場合は上のプリセット方式を使います。
+    emotion_morphs: {}
+    # モデルに「あ・い・う・え・お」の頂点モーフがある場合だけ設定します。
+    mouth_morphs:
+      a: "あ"
+      i: "い"
+      u: "う"
+      e: "え"
+      o: "お"
+    gaze_bones:
+      user: "両目"
+      forward: "両目"
+      left: "両目"
+      right: "両目"
+      up: "両目"
+      down: "両目"
+    # 第18段階では、うなずきに使う頭・上半身ボーンを設定します。
+    pose_bones:
+      head: "頭"
+      upper_body: "上半身"
+    gesture_targets:
+      # モデル内に実在するボーン名を書きます。一般的なMMDでは右腕・頭です。
+      wave: "右腕"
+      nod: "頭"

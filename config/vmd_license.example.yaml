@@ -1,0 +1,14 @@
+# VMD一件ごとに、利用者自身が確認した内容を記録します。
+title: モーションのタイトル
+author: 作者または権利者
+source_url: ""
+terms_url: ""
+obtained_date: 2026-07-24
+allowed_use: 確認した利用可能な範囲
+modifications: 変更していない、または変更内容
+credit_required: false
+credit_text: ""
+redistribution_allowed: false
+# 規約と利用目的を確認できるまではfalseのままにします。
+usage_confirmed: false
+notes: ""

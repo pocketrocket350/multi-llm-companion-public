@@ -1,0 +1,13 @@
+diff --git a/Source/NativeContext.cpp b/Source/NativeContext.cpp
+index 9dbdd69..dd5475e 100644
+--- a/Source/NativeContext.cpp
++++ b/Source/NativeContext.cpp
+@@ -298,6 +298,8 @@ MMDPHYSICSAPI void MMDBulletPhysicsBuildRigidBodies(
+ 
+         btRigidBody::btRigidBodyConstructionInfo info(mass, motionState, shape, inertia);
+         info.m_additionalDamping = true;
++        const btScalar unitScale = btScalar(context->config.mmdUnitToUnityUnit);
++        info.m_additionalLinearDampingThresholdSqr *= unitScale * unitScale;
+         info.m_friction = rigidBody.friction;
+         info.m_linearDamping = rigidBody.linearDamping;
+         info.m_angularDamping = rigidBody.angularDamping;

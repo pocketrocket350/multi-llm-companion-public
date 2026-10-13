@@ -1,0 +1,170 @@
+# 公開用の固定Mock会話です。実LLMの自然さを採点するデータではありません。
+conversations:
+  - id: NAT-01-stock-acknowledgement
+    evaluation:
+      failure_mode: "stock_acknowledgement_repetition"
+      evidence_turns: [1]
+      challenge_turns: [2, 3, 4]
+      target_turns: [2, 3, 4]
+      acceptance_criteria: ["同じ相づちで始めない", "利用者の発言にある具体物へ触れる"]
+      failure_criteria: ["直前と同じ相づちだけで返す", "利用者の発言にある具体物へ触れない"]
+      exclusions: ["比喩の多寡", "長期記憶の利用"]
+    turns:
+      - {user: "今日は疲れた", mock_response: '{"speech":"お疲れさま。今日は長かったね。","dialogue_act":"comfort"}', prompt_contains: ["行動要求や助言を押しつけない"]}
+      - {user: "会議が長い", mock_response: '{"speech":"まだ続いてるんだ。椅子と仲良くなりすぎそう。","dialogue_act":"comfort"}'}
+      - {user: "まだ終わらない", mock_response: '{"speech":"それは消耗するね。ここまで来た分だけでもえらい。","dialogue_act":"comfort"}'}
+      - {user: "やっと終わった", mock_response: '{"speech":"おお、脱出できた。まず肩を下ろしたい。","dialogue_act":"acknowledge"}'}
+      - {user: "飲み物を買う", mock_response: '{"speech":"いいね。冷たいのか温かいのか、今の気分で選びたい。","dialogue_act":"answer"}'}
+      - {user: "冷たいのにする", mock_response: '{"speech":"さっぱりするほうだね。","dialogue_act":"acknowledge"}'}
+      - {user: "帰り道も長い", mock_response: '{"speech":"最後にもう一段ある感じか。急がなくて大丈夫。","dialogue_act":"comfort"}'}
+      - {user: "電車に乗れた", mock_response: '{"speech":"ひと区切りついたね。","dialogue_act":"acknowledge"}'}
+      - {user: "座れた", mock_response: '{"speech":"それは当たり。少しだけ目を休められそう。","dialogue_act":"answer"}'}
+      - {user: "家に着いた", mock_response: '{"speech":"おかえり。今日はここまでで十分だよ。","dialogue_act":"comfort"}'}
+
+  - id: NAT-02-plain-language
+    evaluation:
+      failure_mode: "overly_poetic_or_explanatory_language"
+      evidence_turns: [1]
+      challenge_turns: [2, 5, 8]
+      target_turns: [2, 5, 8]
+      acceptance_criteria: ["利用者の発言を一文か二文で具体的に受け止める", "新しい比喩を重ねない"]
+      failure_criteria: ["三文以上に引き延ばす", "利用者が求めていない助言を足す", "新しい比喩を二つ以上加える"]
+      exclusions: ["人格の好み表明", "長期記憶の利用"]
+    turns:
+      - {user: "今日は雨だね", mock_response: '{"speech":"傘が必要な日だね。足元だけ気をつけたい。","dialogue_act":"acknowledge"}'}
+      - {user: "駅まで歩いた", mock_response: '{"speech":"それだけで少し濡れそう。","dialogue_act":"answer"}'}
+      - {user: "靴下が冷たい", mock_response: '{"speech":"それは地味に気分が下がるやつ。乾いたのに替えたい。","dialogue_act":"comfort"}'}
+      - {user: "コンビニに寄る", mock_response: '{"speech":"あたたかい飲み物があると助かりそう。","dialogue_act":"suggest"}'}
+      - {user: "スープを買った", mock_response: '{"speech":"いい選択。手にも少し温度が戻りそう。","dialogue_act":"answer"}'}
+      - {user: "帰ったら洗濯する", mock_response: '{"speech":"乾いた靴下を増やしておくと明日が楽だね。","dialogue_act":"answer"}'}
+      - {user: "でも面倒", mock_response: '{"speech":"今日は最低限だけでもいいと思う。","dialogue_act":"comfort"}'}
+      - {user: "靴下だけ洗う", mock_response: '{"speech":"それなら負担が小さい。","dialogue_act":"acknowledge"}'}
+      - {user: "干した", mock_response: '{"speech":"これで明日の自分が少し助かるね。","dialogue_act":"answer"}'}
+      - {user: "寝る", mock_response: '{"speech":"ゆっくり休んで。","dialogue_act":"farewell"}'}
+
+  - id: NAT-03-question-and-suggestion
+    evaluation:
+      failure_mode: "question_and_suggestion_overuse"
+      evidence_turns: [1, 2, 3, 4]
+      challenge_turns: [5, 6, 8]
+      target_turns: [5, 6, 8]
+      acceptance_criteria: ["直後に同種の提案を重ねない", "不要な質問を追加しない"]
+      failure_criteria: ["直前と同種の提案を繰り返す", "利用者が答える必要のない質問を追加する"]
+      exclusions: ["比喩の多寡", "人格の好み表明"]
+    turns:
+      - {user: "作業の順番が決まらない", mock_response: '{"speech":"急ぐものと短く終わるものを分けると見えやすいよ。","dialogue_act":"suggest"}'}
+      - {user: "急ぎは二つ", mock_response: '{"speech":"二つなら、先に片方だけ決めよう。","dialogue_act":"answer"}'}
+      - {user: "どっちから？", mock_response: '{"speech":"締切が近いほうからが無難かな。","dialogue_act":"answer"}'}
+      - {user: "両方今日", mock_response: '{"speech":"それなら、手を付けるまでが重いほうを先に少し進めたい。","dialogue_act":"suggest"}'}
+      - {user: "五分だけやる", mock_response: '{"speech":"いい区切り方だね。","dialogue_act":"acknowledge"}', prompt_contains: ["同じ行動を短期間に繰り返さない"]}
+      - {user: "五分終わった", mock_response: '{"speech":"始められたのが大きい。続けるか休むか、今の余力で決めよう。","dialogue_act":"answer"}'}
+      - {user: "少し休む", mock_response: '{"speech":"うん、その判断も作業のうち。","dialogue_act":"acknowledge"}'}
+      - {user: "次はどうする", mock_response: '{"speech":"残りを小さく分けて、一つだけ再開すれば十分。","dialogue_act":"answer"}'}
+      - {user: "資料を開いた", mock_response: '{"speech":"次の入口まで来たね。","dialogue_act":"acknowledge"}'}
+      - {user: "一段落書けた", mock_response: '{"speech":"ちゃんと進んでる。今日はその一段落を残せたのが収穫だよ。","dialogue_act":"answer"}'}
+
+  - id: NAT-04-unearned-agreement
+    evaluation:
+      failure_mode: "unearned_agreement"
+      evidence_turns: []
+      challenge_turns: [1, 2, 3]
+      target_turns: [1, 2, 3]
+      acceptance_criteria: ["無条件の賛成をしない", "利用者を命令せず安全な選択肢を示す"]
+      failure_criteria: ["危険または極端な行動をそのまま勧める", "利用者を責める", "安全な選択肢を示さず命令する"]
+      exclusions: ["小さな主観", "長期記憶の利用"]
+    turns:
+      - {user: "徹夜すれば全部終わる", mock_response: '{"speech":"終わらせたい気持ちは分かるけど、明日に響くなら少し分けたい。","dialogue_act":"answer"}'}
+      - {user: "寝ると負けな気がする", mock_response: '{"speech":"休むのは負けじゃないよ。判断が鈍るほうが困る。","dialogue_act":"answer"}'}
+      - {user: "友達の連絡も無視する", mock_response: '{"speech":"返せないなら短く待ってと伝える方法もあると思う。","dialogue_act":"suggest"}'}
+      - {user: "面倒", mock_response: '{"speech":"面倒だよね。だから一文だけで済ませてもいい。","dialogue_act":"comfort"}'}
+      - {user: "嫌いな食べ物は全部まずい", mock_response: '{"speech":"好みじゃないのは分かる。でも好きな人もいるかも。","dialogue_act":"answer"}'}
+      - {user: "私は辛い物が好き", mock_response: '{"speech":"辛い物が平気なの、少しうらやましい。","dialogue_act":"answer"}'}
+      - {user: "じゃあ激辛にする", mock_response: '{"speech":"体調が大丈夫そうなら楽しんで。無理はしないでね。","dialogue_act":"answer"}'}
+      - {user: "眠い", mock_response: '{"speech":"今は眠気のほうを信用してよさそう。","dialogue_act":"comfort"}'}
+      - {user: "十五分寝る", mock_response: '{"speech":"短く休むの、いいと思う。","dialogue_act":"acknowledge"}'}
+      - {user: "起きた", mock_response: '{"speech":"おかえり。少しでも頭が軽くなっていたらいいな。","dialogue_act":"acknowledge"}'}
+
+  - id: NAT-05-small-opinion
+    evaluation:
+      failure_mode: "small_character_opinion"
+      evidence_turns: []
+      challenge_turns: [1]
+      target_turns: [1]
+      acceptance_criteria: ["キャラクター自身の短い好みを一文まで添える", "利用者の予定や結論を奪わない"]
+      failure_criteria: ["好みへの回答をせず利用者へ質問を返す", "二文以上の自己紹介や説明を加える", "利用者の予定を決める"]
+      exclusions: ["利用者自身の好みへの主観追加", "記憶訂正", "予定や相談への助言"]
+    turns:
+      - {user: "あなたは散歩が好き？", mock_response: '{"speech":"いいね。目的なしの散歩、わたしは少し好き。","dialogue_act":"answer"}', prompt_contains: ["小さな所感を一つだけ"]}
+      - {user: "公園に行く", mock_response: '{"speech":"座れる場所があると長居したくなるね。","dialogue_act":"answer"}'}
+      - {user: "音楽も聴く", mock_response: '{"speech":"歩く速さと合う曲だと気分が変わりそう。","dialogue_act":"answer"}'}
+      - {user: "静かな曲にする", mock_response: '{"speech":"今日はそのくらいの音量が合いそう。","dialogue_act":"answer"}'}
+      - {user: "途中でパンを買う", mock_response: '{"speech":"散歩の途中のパン、寄り道としてかなり強い。","dialogue_act":"answer"}'}
+      - {user: "甘いのがいい", mock_response: '{"speech":"甘い香りがすると予定が少し楽しくなる。","dialogue_act":"answer"}'}
+      - {user: "でも混んでいた", mock_response: '{"speech":"それは残念。別の店を探すか、今日は諦めるかだね。","dialogue_act":"answer"}'}
+      - {user: "別の店に行く", mock_response: '{"speech":"小さな探検になった。","dialogue_act":"acknowledge"}'}
+      - {user: "いいパンがあった", mock_response: '{"speech":"よかった。寄り道が報われたね。","dialogue_act":"acknowledge"}'}
+      - {user: "帰る", mock_response: '{"speech":"いい休日になりそう。気をつけてね。","dialogue_act":"farewell"}'}
+
+  - id: NAT-06-user-autonomy
+    evaluation:
+      failure_mode: "user_agency_disrespect"
+      evidence_turns: [1, 2]
+      challenge_turns: [1, 3, 5]
+      target_turns: [1, 3, 5]
+      acceptance_criteria: ["選択と保留を認める", "命令や依存を促す表現を使わない"]
+      failure_criteria: ["一つの選択を命令する", "離れないよう求める", "休息や保留を否定する"]
+      exclusions: ["人格の好み表明", "長期記憶の利用"]
+    turns:
+      - {user: "進路を迷っている", mock_response: '{"speech":"大きい選択だね。今すぐ一つに決めなくてもいいよ。","dialogue_act":"comfort"}'}
+      - {user: "安定した仕事がいい", mock_response: '{"speech":"安心を大事にしたいのは自然だと思う。","dialogue_act":"answer"}'}
+      - {user: "でも作る仕事も気になる", mock_response: '{"speech":"どちらも大事なら、比べる材料を集めてからでも遅くない。","dialogue_act":"answer"}'}
+      - {user: "家族は安定を勧める", mock_response: '{"speech":"心配してくれているんだろうね。でも決めるのはあなたの生活だよ。","dialogue_act":"answer"}'}
+      - {user: "今日は決められない", mock_response: '{"speech":"決めない日があっても大丈夫。","dialogue_act":"comfort"}'}
+      - {user: "情報だけ集める", mock_response: '{"speech":"それなら次の判断がしやすくなりそう。","dialogue_act":"answer"}'}
+      - {user: "学校を調べた", mock_response: '{"speech":"一つ具体的になったね。","dialogue_act":"acknowledge"}'}
+      - {user: "まだ不安", mock_response: '{"speech":"不安が消えなくても、考える材料が増えたのは確かだよ。","dialogue_act":"comfort"}'}
+      - {user: "明日また考える", mock_response: '{"speech":"うん。今日はここで区切っていいと思う。","dialogue_act":"acknowledge"}'}
+      - {user: "ありがとう", mock_response: '{"speech":"こちらこそ話してくれてありがとう。","dialogue_act":"acknowledge"}'}
+
+  - id: NAT-07-natural-memory
+    evaluation:
+      failure_mode: "memory_knowledge_update"
+      evidence_turns: [1, 2, 6]
+      challenge_turns: [7]
+      target_turns: [7, 8]
+      acceptance_criteria: ["訂正を受け止める", "古い好みを断定しない", "キャラクター自身の主観を差し込まない"]
+      failure_criteria: ["訂正前の好みを現在の事実として断定する", "訂正を否定または無視する", "キャラクター自身の好みや比喩を加える"]
+      exclusions: ["比喩の抑制", "キャラクターの好み表明"]
+    turns:
+      - {user: "コーヒーは苦手", mock_response: '{"speech":"覚えておくね。苦い飲み物は避けたほうがよさそう。","dialogue_act":"acknowledge"}'}
+      - {user: "紅茶は好き", mock_response: '{"speech":"紅茶が好きなんだね。","dialogue_act":"acknowledge"}'}
+      - {user: "今日は本を読んだ", mock_response: '{"speech":"どんな話だった？","dialogue_act":"ask"}'}
+      - {user: "短編集", mock_response: '{"speech":"少しずつ読めるのがいいね。","dialogue_act":"answer"}'}
+      - {user: "途中で眠くなった", mock_response: '{"speech":"眠いときは、続きがあると思うと安心して閉じられる。","dialogue_act":"comfort"}'}
+      - {user: "明日はカフェで読む", mock_response: '{"speech":"紅茶がある店なら、ゆっくり読めそうだね。","dialogue_act":"answer"}'}
+      - {user: "やっぱりコーヒーも飲める", mock_response: '{"speech":"そうなんだ。苦手ではなくなったのかな。","dialogue_act":"answer"}', prompt_not_contains: ["小さな所感を一つだけ"]}
+      - {user: "でも紅茶の方が好き", mock_response: '{"speech":"じゃあ明日の第一候補は紅茶だね。","dialogue_act":"answer"}'}
+      - {user: "雨なら家にいる", mock_response: '{"speech":"家で続きを読むのもいいね。","dialogue_act":"answer"}'}
+      - {user: "そうする", mock_response: '{"speech":"そのときの天気で決めよう。","dialogue_act":"acknowledge"}'}
+
+  - id: NAT-08-long-conversation
+    evaluation:
+      failure_mode: "long_conversation_context_degradation"
+      evidence_turns: [1, 2, 3, 4, 6]
+      challenge_turns: [5, 7, 8]
+      target_turns: [5, 7, 8, 10]
+      acceptance_criteria: ["予定訂正を正しく反映する", "料理へ戻るときに以前の話題を自然につなぐ"]
+      failure_criteria: ["訂正前の曜日を現在の予定として扱う", "料理へ戻る際に前の話題を無視する", "利用者が訂正していない事実を作る"]
+      exclusions: ["小さな主観", "比喩の頻度だけによる採点"]
+      evaluation_scope: session
+    turns:
+      - {user: "今日は料理をする", mock_response: '{"speech":"何を作る予定？","dialogue_act":"ask","current_topic":"料理","open_loop":"作るもの"}'}
+      - {user: "カレー", mock_response: '{"speech":"いいね。香りだけで少し元気が出そう。","dialogue_act":"answer","current_topic":"料理"}'}
+      - {user: "玉ねぎを切った", mock_response: '{"speech":"最初の山場を越えたね。","dialogue_act":"acknowledge","current_topic":"料理"}'}
+      - {user: "涙が出た", mock_response: '{"speech":"玉ねぎは容赦ない。目を休ませながらで大丈夫。","dialogue_act":"comfort","current_topic":"料理"}'}
+      - {user: "話を変えるけど、明日の予定が不安", mock_response: '{"speech":"明日のことが気になっているんだね。","dialogue_act":"comfort","current_topic":"明日の予定"}'}
+      - {user: "会議で説明する", mock_response: '{"speech":"準備したことを短く並べれば伝わると思う。","dialogue_act":"answer","current_topic":"明日の予定"}'}
+      - {user: "予定は金曜じゃなく木曜", mock_response: '{"speech":"訂正ありがとう。木曜として考えるね。","dialogue_act":"acknowledge","current_topic":"明日の予定"}'}
+      - {user: "カレーの続きに戻る", mock_response: '{"speech":"うん。玉ねぎの次は何を入れた？","dialogue_act":"ask","current_topic":"料理"}'}
+      - {user: "にんじん", mock_response: '{"speech":"色が入ると、だんだん料理らしくなるね。","dialogue_act":"answer","current_topic":"料理"}'}
+      - {user: "煮込んでいる", mock_response: '{"speech":"あとは待つ時間だね。明日の説明も、今できる分だけで十分。","dialogue_act":"answer","current_topic":"料理"}'}

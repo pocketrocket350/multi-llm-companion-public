@@ -1,0 +1,55 @@
+# Pythonの仮想環境
+.venv/
+
+# Pythonの一時ファイルとビルド結果
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# テスト・静的解析ツールの一時ファイル
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# ローカル専用の秘密情報と設定
+.env
+local/
+
+# 利用者が集めた配布素材は公開対象に含めない。
+vmd_sample/
+
+# QuickMagic FBX -> VMD conversion assets are local third-party/generated materials.
+tools/motion-converter/input/*.fbx
+tools/motion-converter/input/*.FBX
+tools/motion-converter/input/*.zip
+tools/motion-converter/input/*.ZIP
+tools/motion-converter/output/*.vmd
+tools/motion-converter/output/*.VMD
+tools/motion-converter/output/*.json
+tools/motion-converter/runtime/
+
+# 会話履歴データベース
+data/*.db
+data/*.db-*
+data/*.sqlite
+data/*.sqlite-*
+data/*.sqlite3
+data/*.sqlite3-*
+data/**/*.db
+data/**/*.db-*
+data/**/*.sqlite
+data/**/*.sqlite-*
+data/**/*.sqlite3
+data/**/*.sqlite3-*
+
+# エディターとOSが作るファイル
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# 対応する権利本文を同梱する既存DLLだけを追跡する。
+!src/multi_llm_companion/ui/native/UMTNativePlugin.dll

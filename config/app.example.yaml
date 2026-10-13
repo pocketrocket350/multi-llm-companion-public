@@ -1,0 +1,9 @@
+# アプリ全体の設定です。
+# setup_windows.bat が local/app.yaml にコピーします。
+active_provider: mock
+providers_config_path: local/providers.yaml
+persona_path: local/persona.yaml
+database_path: data/conversations.db
+audio_config_path: local/audio.yaml
+memory_config_path: local/memory.yaml
+avatar_config_path: local/avatar.yaml
