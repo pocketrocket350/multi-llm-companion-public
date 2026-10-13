@@ -24,6 +24,7 @@ set "MSG_MEMORY_CONFIG_FAILED=[エラー] local\memory.yaml を作成できま�
 set "MSG_AVATAR_CONFIG_FAILED=[エラー] local\avatar.yaml を作成できませんでした。"
 set "MSG_MMD_FOLDER_FAILED=[エラー] local\models\mmd フォルダを作成できませんでした。"
 set "MSG_ENV_FAILED=[エラー] .env を作成できませんでした。"
+set "MSG_MOTIONS_FAILED=[エラー] 同梱モーションの配置に失敗しました。既存ファイルは上書きしません。"
 
 echo ================================================
 echo multi-llm-companion 初回セットアップ
@@ -145,6 +146,13 @@ if not exist ".env" echo %MSG_PRESS_CLOSE%
 if not exist ".env" pause >nul
 if not exist ".env" exit /b 1
 
+".venv\Scripts\python.exe" "scripts\install_bundled_motions.py"
+set "MOTIONS_RESULT=%ERRORLEVEL%"
+if not "%MOTIONS_RESULT%"=="0" echo %MSG_MOTIONS_FAILED%
+if not "%MOTIONS_RESULT%"=="0" echo %MSG_PRESS_CLOSE%
+if not "%MOTIONS_RESULT%"=="0" pause >nul
+if not "%MOTIONS_RESULT%"=="0" exit /b 1
+
 echo.
 echo ================================================
 echo [完了] セットアップが正常に終わりました。
@@ -158,6 +166,7 @@ echo 5. Whisperを使う場合は download_whisper_model.bat を実行してく�
 echo 6. 記憶は既定で自動承認します。「設定」から「記憶を管理」で確認・変更できます。
 echo 7. アバターの表示名と色は local\avatar.yaml で変更できます。
 echo 8. 自分で利用許諾を確認したPMXモデルは local\models\mmd に置いてください。
+echo 9. 同梱VMDの出典・規約と導入方法は docs\bundled_motions_ja.md を参照してください。
 echo.
 echo 何かキーを押すと閉じます。
 pause >nul

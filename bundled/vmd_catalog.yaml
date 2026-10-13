@@ -1,0 +1,557 @@
+motions:
+  sample_otokam_001:
+    file: local/motions/otokam/vol1/original/ot0510_やれやれ.vmd
+    motion_type: reaction
+    action: shrug
+    category: shrug
+    body_mask:
+    - full_body
+    audio_required: false
+    loop: false
+    intensity_scale: 1.0
+    license_record: local/licenses/otokam/vol1.yaml
+    compatibility:
+      model_names:
+      - 雨衣
+    enabled: false
+    weight: 1.0
+    cooldown_seconds: 20.0
+    intent: shrug
+    moods:
+    - neutral
+    - embarrassed
+    energy: low
+  sample_otokam_002:
+    file: local/motions/otokam/vol1/original/ot0510_バキュン.vmd
+    motion_type: reaction
+    action: playful_shoot
+    category: playful_shoot
+    body_mask:
+    - full_body
+    audio_required: false
+    loop: false
+    intensity_scale: 1.0
+    license_record: local/licenses/otokam/vol1.yaml
+    compatibility:
+      model_names:
+      - 雨衣
+    enabled: true
+    weight: 1.0
+    cooldown_seconds: 20.0
+    intent: playful_shoot
+    moods:
+    - happy
+    energy: high
+  sample_otokam_003:
+    file: local/motions/otokam/vol1/original/ot0510_リズム_大.vmd
+    motion_type: reaction
+    action: rhythm_large
+    category: rhythm_large
+    body_mask:
+    - full_body
+    audio_required: false
+    loop: false
+    intensity_scale: 1.0
+    license_record: local/licenses/otokam/vol1.yaml
+    compatibility:
+      model_names:
+      - 雨衣
+    enabled: true
+    weight: 1.0
+    cooldown_seconds: 20.0
+    intent: rhythm_large
+    moods:
+    - happy
+    energy: high
+  sample_otokam_005:
+    file: local/motions/otokam/vol1/original/ot0510_リズム_小.vmd
+    motion_type: reaction
+    action: rhythm_small
+    category: rhythm_small
+    body_mask:
+    - full_body
+    audio_required: false
+    loop: false
+    intensity_scale: 1.0
+    license_record: local/licenses/otokam/vol1.yaml
+    compatibility:
+      model_names:
+      - 雨衣
+    enabled: true
+    weight: 1.0
+    cooldown_seconds: 20.0
+    intent: rhythm_small
+    moods:
+    - neutral
+    - happy
+    energy: low
+  sample_otokam_007:
+    file: local/motions/otokam/vol1/original/ot0510_喜びジャンプ.vmd
+    motion_type: reaction
+    action: delight
+    category: delight
+    body_mask:
+    - full_body
+    audio_required: false
+    loop: false
+    intensity_scale: 1.0
+    license_record: local/licenses/otokam/vol1.yaml
+    compatibility:
+      model_names:
+      - 雨衣
+    enabled: false
+    weight: 1.0
+    cooldown_seconds: 20.0
+    intent: delight
+    moods:
+    - happy
+    energy: high
+  sample_otokam_009:
+    file: local/motions/otokam/vol1/original/ot0510_指令.vmd
+    motion_type: reaction
+    action: point_direction
+    category: point_direction
+    body_mask:
+    - full_body
+    audio_required: false
+    loop: false
+    intensity_scale: 1.0
+    license_record: local/licenses/otokam/vol1.yaml
+    compatibility:
+      model_names:
+      - 雨衣
+    enabled: false
+    weight: 1.0
+    cooldown_seconds: 20.0
+    intent: point_direction
+    moods:
+    - neutral
+    energy: medium
+  sample_otokam_010:
+    file: local/motions/otokam/vol1/original/ot0510_胸に秘めたる.vmd
+    motion_type: reaction
+    action: cherish
+    category: cherish
+    body_mask:
+    - full_body
+    audio_required: false
+    loop: false
+    intensity_scale: 1.0
+    license_record: local/licenses/otokam/vol1.yaml
+    compatibility:
+      model_names:
+      - 雨衣
+    enabled: true
+    weight: 1.0
+    cooldown_seconds: 20.0
+    intent: cherish
+    moods:
+    - happy
+    - embarrassed
+    energy: low
+  sample_otokam_011:
+    file: local/motions/otokam/vol1/original/ot0510_腕ポンポン.vmd
+    motion_type: reaction
+    action: reassure
+    category: reassure
+    body_mask:
+    - full_body
+    audio_required: false
+    loop: false
+    intensity_scale: 1.0
+    license_record: local/licenses/otokam/vol1.yaml
+    compatibility:
+      model_names:
+      - 雨衣
+    enabled: true
+    weight: 1.0
+    cooldown_seconds: 20.0
+    intent: reassure
+    moods:
+    - neutral
+    - happy
+    energy: low
+  sample_otokam_012:
+    file: local/motions/otokam/vol1/original/ot0510_興味深い.vmd
+    motion_type: reaction
+    action: curious
+    category: curious
+    body_mask:
+    - full_body
+    audio_required: false
+    loop: false
+    intensity_scale: 1.0
+    license_record: local/licenses/otokam/vol1.yaml
+    compatibility:
+      model_names:
+      - 雨衣
+    enabled: true
+    weight: 1.0
+    cooldown_seconds: 20.0
+    intent: curious
+    moods:
+    - neutral
+    - surprised
+    energy: low
+  sample_otokam_016:
+    file: local/motions/otokam/vol1/original/ot0510_驚き_背中見せ.vmd
+    motion_type: reaction
+    action: surprise
+    category: surprise
+    body_mask:
+    - full_body
+    audio_required: false
+    loop: false
+    intensity_scale: 1.0
+    license_record: local/licenses/otokam/vol1.yaml
+    compatibility:
+      model_names:
+      - 雨衣
+    enabled: false
+    weight: 1.0
+    cooldown_seconds: 20.0
+    intent: surprise
+    moods:
+    - surprised
+    energy: high
+  sample_otokam_017:
+    file: local/motions/otokam/vol2/original/ot0510_ひらめく.vmd
+    motion_type: reaction
+    action: remember
+    category: remember
+    body_mask:
+    - full_body
+    audio_required: false
+    loop: false
+    intensity_scale: 1.0
+    license_record: local/licenses/otokam/vol2.yaml
+    compatibility:
+      model_names:
+      - 雨衣
+    enabled: true
+    weight: 1.0
+    cooldown_seconds: 20.0
+    intent: remember
+    moods:
+    - neutral
+    - happy
+    - surprised
+    energy: medium
+  sample_otokam_018:
+    file: local/motions/otokam/vol2/original/ot0510_ドヤ.vmd
+    motion_type: reaction
+    action: proud
+    category: proud
+    body_mask:
+    - full_body
+    audio_required: false
+    loop: false
+    intensity_scale: 1.0
+    license_record: local/licenses/otokam/vol2.yaml
+    compatibility:
+      model_names:
+      - 雨衣
+    enabled: true
+    weight: 1.0
+    cooldown_seconds: 20.0
+    intent: proud
+    moods:
+    - happy
+    energy: medium
+  sample_otokam_019:
+    file: local/motions/otokam/vol2/original/ot0510_ピース.vmd
+    motion_type: reaction
+    action: peace
+    category: peace
+    body_mask:
+    - full_body
+    audio_required: false
+    loop: false
+    intensity_scale: 1.0
+    license_record: local/licenses/otokam/vol2.yaml
+    compatibility:
+      model_names:
+      - 雨衣
+    enabled: true
+    weight: 1.0
+    cooldown_seconds: 20.0
+    intent: peace
+    moods:
+    - happy
+    energy: medium
+  sample_otokam_020:
+    file: local/motions/otokam/vol2/original/ot0510_応援_ループ.vmd
+    motion_type: reaction
+    action: cheer
+    category: cheer
+    body_mask:
+    - full_body
+    audio_required: false
+    loop: false
+    intensity_scale: 1.0
+    license_record: local/licenses/otokam/vol2.yaml
+    compatibility:
+      model_names:
+      - 雨衣
+    enabled: false
+    weight: 1.0
+    cooldown_seconds: 20.0
+    intent: cheer
+    moods:
+    - neutral
+    - happy
+    energy: medium
+  sample_otokam_023:
+    file: local/motions/otokam/vol2/original/ot0510_笑い_口あて.vmd
+    motion_type: reaction
+    action: laugh
+    category: laugh
+    body_mask:
+    - full_body
+    audio_required: false
+    loop: false
+    intensity_scale: 1.0
+    license_record: local/licenses/otokam/vol2.yaml
+    compatibility:
+      model_names:
+      - 雨衣
+    enabled: true
+    weight: 1.0
+    cooldown_seconds: 20.0
+    intent: laugh
+    moods:
+    - happy
+    energy: medium
+  sample_otokam_024:
+    file: local/motions/otokam/vol2/original/ot0510_考える_ループ.vmd
+    motion_type: reaction
+    action: think
+    category: think
+    body_mask:
+    - full_body
+    audio_required: false
+    loop: false
+    intensity_scale: 1.0
+    license_record: local/licenses/otokam/vol2.yaml
+    compatibility:
+      model_names:
+      - 雨衣
+    enabled: true
+    weight: 1.0
+    cooldown_seconds: 20.0
+    intent: think
+    moods:
+    - neutral
+    energy: low
+  sample_otokam_025:
+    file: local/motions/otokam/vol2/original/ot0510_苦笑い_ループ.vmd
+    motion_type: reaction
+    action: awkward_smile
+    category: awkward_smile
+    body_mask:
+    - full_body
+    audio_required: false
+    loop: false
+    intensity_scale: 1.0
+    license_record: local/licenses/otokam/vol2.yaml
+    compatibility:
+      model_names:
+      - 雨衣
+    enabled: true
+    weight: 1.0
+    cooldown_seconds: 20.0
+    intent: awkward_smile
+    moods:
+    - embarrassed
+    energy: low
+  sample_otokam_027:
+    file: local/motions/otokam/vol2/original/ot0510_飛行機ごっこ_ループ.vmd
+    motion_type: reaction
+    action: playful_airplane
+    category: playful_airplane
+    body_mask:
+    - full_body
+    audio_required: false
+    loop: false
+    intensity_scale: 1.0
+    license_record: local/licenses/otokam/vol2.yaml
+    compatibility:
+      model_names:
+      - 雨衣
+    enabled: true
+    weight: 1.0
+    cooldown_seconds: 20.0
+    intent: playful_airplane
+    moods:
+    - happy
+    energy: high
+  sample_otokam_028:
+    file: local/motions/otokam/vol2/original/ot0510_驚き_腕バタバタ_ループ.vmd
+    motion_type: reaction
+    action: startled
+    category: startled
+    body_mask:
+    - full_body
+    audio_required: false
+    loop: false
+    intensity_scale: 1.0
+    license_record: local/licenses/otokam/vol2.yaml
+    compatibility:
+      model_names:
+      - 雨衣
+    enabled: false
+    weight: 1.0
+    cooldown_seconds: 20.0
+    intent: startled
+    moods:
+    - surprised
+    energy: high
+  sample_otokam_029:
+    file: local/motions/otokam/vol3/original/ot0510_no.vmd
+    motion_type: reaction
+    action: shake_head_no
+    category: shake_head_no
+    body_mask:
+    - full_body
+    audio_required: false
+    loop: false
+    intensity_scale: 1.0
+    license_record: local/licenses/otokam/vol3.yaml
+    compatibility:
+      model_names:
+      - 雨衣
+    enabled: true
+    weight: 1.0
+    cooldown_seconds: 20.0
+    intent: shake_head_no
+    moods:
+    - neutral
+    - angry
+    energy: low
+  sample_otokam_030:
+    file: local/motions/otokam/vol3/original/ot0510_yes.vmd
+    motion_type: reaction
+    action: nod
+    category: nod
+    body_mask:
+    - full_body
+    audio_required: false
+    loop: false
+    intensity_scale: 1.0
+    license_record: local/licenses/otokam/vol3.yaml
+    compatibility:
+      model_names:
+      - 雨衣
+    enabled: true
+    weight: 1.0
+    cooldown_seconds: 20.0
+    intent: nod
+    moods:
+    - neutral
+    - happy
+    energy: low
+  sample_otokam_048:
+    file: local/motions/otokam/idle/fitted/ot0510_待機_両手後ろ_まばたき付き.vmd
+    motion_type: idle
+    action: idle
+    category: idle
+    body_mask:
+    - full_body
+    audio_required: false
+    loop: true
+    intensity_scale: 1.0
+    license_record: local/licenses/otokam/idle_hands_behind.yaml
+    compatibility:
+      model_names:
+      - 雨衣
+    enabled: true
+    weight: 1.0
+    cooldown_seconds: 0.0
+    intent: idle
+    moods:
+    - neutral
+    energy: low
+  sample_otokam_050:
+    file: local/motions/otokam/idle/original/ot0510_待機_元気_まばたき付き.vmd
+    motion_type: idle
+    action: idle
+    category: idle
+    body_mask:
+    - full_body
+    audio_required: false
+    loop: true
+    intensity_scale: 1.0
+    license_record: local/licenses/otokam/idle.yaml
+    compatibility:
+      model_names:
+      - 雨衣
+    enabled: false
+    weight: 1.0
+    cooldown_seconds: 0.0
+    intent: idle
+    moods:
+    - neutral
+    energy: low
+  sample_otokam_052:
+    file: local/motions/otokam/idle/original/ot0510_待機_右手腰あて_まばたき付き.vmd
+    motion_type: idle
+    action: idle
+    category: idle
+    body_mask:
+    - full_body
+    audio_required: false
+    loop: true
+    intensity_scale: 1.0
+    license_record: local/licenses/otokam/idle.yaml
+    compatibility:
+      model_names:
+      - 雨衣
+    enabled: true
+    weight: 1.0
+    cooldown_seconds: 0.0
+    intent: idle
+    moods:
+    - neutral
+    energy: low
+  sample_otokam_056:
+    file: local/motions/otokam/idle/fitted/ot0510_待機_左手腰あて_まばたき付き_右袖余裕8度.vmd
+    motion_type: idle
+    action: idle
+    category: idle
+    body_mask:
+    - full_body
+    audio_required: false
+    loop: true
+    intensity_scale: 1.0
+    license_record: local/licenses/otokam/idle_waist.yaml
+    compatibility:
+      model_names:
+      - 雨衣
+    enabled: true
+    weight: 1.0
+    cooldown_seconds: 0.0
+    intent: idle
+    moods:
+    - neutral
+    energy: low
+  sample_otokam_058:
+    file: local/motions/otokam/idle/fitted/ot0510_待機_猫背_まばたき付き_猫背姿勢調整_袖余裕.vmd
+    motion_type: idle
+    action: idle
+    category: idle
+    body_mask:
+    - full_body
+    audio_required: false
+    loop: false
+    intensity_scale: 1.0
+    license_record: local/licenses/otokam/idle_catback.yaml
+    compatibility:
+      model_names:
+      - 雨衣
+    enabled: true
+    weight: 1.0
+    cooldown_seconds: 0.0
+    intent: idle
+    moods:
+    - neutral
+    energy: low

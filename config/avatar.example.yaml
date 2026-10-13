@@ -14,11 +14,11 @@ three_d:
   # 第33段階: 外部VMDはカタログへ登録し、識別名で選びます。
   # ファイルを直接指定するvmd_pathは安全確認を通らないため使用できません。
   vmd_catalog_path: local/vmd_catalog.yaml
-  # 例: nod_small。空欄ならVMDを読み込みません。
-  vmd_motion_id: ""
+  # 初回セットアップで配置する採用済み待機です。3D無効の間は読み込みません。
+  vmd_motion_id: sample_otokam_048
   # trueにすると、カタログ内の有効なtalk・reaction・danceを自動登録します。
   # 一度有効にすれば、カタログへメタデータを追加するだけで候補を増やせます。
-  motion_library_enabled: false
+  motion_library_enabled: true
   # 第34段階: 会話中に選択できるVMD識別名です。権利・PMX互換性を起動時に確認します。
   # 未登録なら、waveとnodは従来の軽量なボーン動作へ安全に戻ります。
   gesture_motion_ids: []

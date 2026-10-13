@@ -1,0 +1,593 @@
+{
+  "kind": "selected-motion-bundle",
+  "files": [
+    {
+      "path": "licenses/otokam/idle/Readme.txt",
+      "bytes": 1144,
+      "sha256": "1e25ddf24c76e3acf25b3e8f15b3724d90b38817fc6dde23403b43c396b7cb60"
+    },
+    {
+      "path": "licenses/otokam/idle.yaml",
+      "bytes": 1085,
+      "sha256": "d40dbf190da61d5e981e0b2f886baf3cd54318a98604a2bee800f7790195cc4c"
+    },
+    {
+      "path": "licenses/otokam/idle_catback.yaml",
+      "bytes": 1266,
+      "sha256": "c0aa5ec7fb0debbaf8c5b42872b9d6a9fc963e7b7be9e84248f6fb471bd4aa7e"
+    },
+    {
+      "path": "licenses/otokam/idle_hands_behind.yaml",
+      "bytes": 1177,
+      "sha256": "f49084b340c085c38d99506161a32f0f76ecac32a82b3308ba6a60ea232432ff"
+    },
+    {
+      "path": "licenses/otokam/idle_waist.yaml",
+      "bytes": 1190,
+      "sha256": "35a078bfa2e3233ced223fa2ac1b548eb02b629d0558e1b10bc021d625a7f135"
+    },
+    {
+      "path": "licenses/otokam/vol1/Readme.txt",
+      "bytes": 1200,
+      "sha256": "44401ad34a601d0e1f1e20cf22f0c18c47d44ddf0e3aa83a3e3402b66704abcf"
+    },
+    {
+      "path": "licenses/otokam/vol1.yaml",
+      "bytes": 1077,
+      "sha256": "fe4e4c2e1d3866a969be8cfc753912b582ac4ef3c042e372d59ca52db8c9322b"
+    },
+    {
+      "path": "licenses/otokam/vol2/Readme.txt",
+      "bytes": 997,
+      "sha256": "8e5004271627dd496131c06a4f1dc6b2733601be2e4dd73c3ccb64ace90fa901"
+    },
+    {
+      "path": "licenses/otokam/vol2.yaml",
+      "bytes": 1077,
+      "sha256": "51e50430705a061ef6aebaec153909a133fbc31034728a991549f47972553e6a"
+    },
+    {
+      "path": "licenses/otokam/vol3/Readme.txt",
+      "bytes": 941,
+      "sha256": "3967ed6d3bf70552823aa86e6331709778538abda49467e4e5b9186f22a03071"
+    },
+    {
+      "path": "licenses/otokam/vol3.yaml",
+      "bytes": 1077,
+      "sha256": "1e61ae1dc43849301df99fcea14d4a002fb9e4b5aba7defbf8ec8963dc9c3dea"
+    },
+    {
+      "path": "motions/otokam/idle/fitted/ot0510_待機_両手後ろ_まばたき付き.vmd",
+      "bytes": 39346,
+      "sha256": "a9d98b20d75488812760b9f985fe3a05aa0a67501d0d16d929125925dc83e0de"
+    },
+    {
+      "path": "motions/otokam/idle/fitted/ot0510_待機_左手腰あて_まばたき付き_右袖余裕8度.vmd",
+      "bytes": 34944,
+      "sha256": "0639af0f824d18e483946d2db8eaa1198d5a15b09e8f616309823aded56bb641"
+    },
+    {
+      "path": "motions/otokam/idle/fitted/ot0510_待機_猫背_まばたき付き_猫背姿勢調整_袖余裕.vmd",
+      "bytes": 27090,
+      "sha256": "d088c73475d7f76dda46a4137024982f694907578f0b8cb0a88fdf93a430d685"
+    },
+    {
+      "path": "motions/otokam/idle/original/ot0510_待機_元気_まばたき付き.vmd",
+      "bytes": 45489,
+      "sha256": "5dee5ea6adee71e8272426f591930ee56e004ee9962bca992542af5732d4d43c"
+    },
+    {
+      "path": "motions/otokam/idle/original/ot0510_待機_右手腰あて_まばたき付き.vmd",
+      "bytes": 28506,
+      "sha256": "480c198a27a6cc123887f7879b75fd0f3dde8483b01d3d4b6429115dea21bcf2"
+    },
+    {
+      "path": "motions/otokam/vol1/original/ot0510_やれやれ.vmd",
+      "bytes": 26565,
+      "sha256": "cb2da5a1e3c59180387a34ae0fbf6d46843b594500f653f95772cd393ea99a69"
+    },
+    {
+      "path": "motions/otokam/vol1/original/ot0510_バキュン.vmd",
+      "bytes": 35698,
+      "sha256": "354b34c8786c03f6d82d9a7e157225efbdac7e4450b11eeaedbf1334175b8a75"
+    },
+    {
+      "path": "motions/otokam/vol1/original/ot0510_リズム_大.vmd",
+      "bytes": 28938,
+      "sha256": "55e7041d1d3fa3cc69164ba94fd914f921b13711a33611076ce7a181074c8e08"
+    },
+    {
+      "path": "motions/otokam/vol1/original/ot0510_リズム_小.vmd",
+      "bytes": 23055,
+      "sha256": "8828aac34d4bfc5190b7677874afad8a7a990d41fe5fb0a58d4f3abf938508b2"
+    },
+    {
+      "path": "motions/otokam/vol1/original/ot0510_喜びジャンプ.vmd",
+      "bytes": 16552,
+      "sha256": "eda2b3050fca2f8330ff6bcecc76bb9e1db5d00c86ce0cc520514b069a421ab6"
+    },
+    {
+      "path": "motions/otokam/vol1/original/ot0510_指令.vmd",
+      "bytes": 38147,
+      "sha256": "859cfbd101e3c9e92c6612c7fe253c4577e2adb2042fc8343fee6fa665686f94"
+    },
+    {
+      "path": "motions/otokam/vol1/original/ot0510_胸に秘めたる.vmd",
+      "bytes": 43039,
+      "sha256": "89caa86bfc0aa018f47f0a61994db102a0856310fb017cd72af3de5335a64689"
+    },
+    {
+      "path": "motions/otokam/vol1/original/ot0510_腕ポンポン.vmd",
+      "bytes": 16992,
+      "sha256": "c6736e6891adcbf7af52a7a89f7192087b15e150bea8b2a5666ea786957d1eb3"
+    },
+    {
+      "path": "motions/otokam/vol1/original/ot0510_興味深い.vmd",
+      "bytes": 32892,
+      "sha256": "d04a6cd83d1dd309650b881f156987d7011572d1361bf4d83c3f35abde4f1e6e"
+    },
+    {
+      "path": "motions/otokam/vol1/original/ot0510_驚き_背中見せ.vmd",
+      "bytes": 18375,
+      "sha256": "700cace39fb6cb07412eec417b00b991acef454b8a1c22539c58ac1f45200e94"
+    },
+    {
+      "path": "motions/otokam/vol2/original/ot0510_ひらめく.vmd",
+      "bytes": 26492,
+      "sha256": "767e85fb22d54615de57cbe121da4bbd1fddcfa49a933341ade1faca08d1f40c"
+    },
+    {
+      "path": "motions/otokam/vol2/original/ot0510_ドヤ.vmd",
+      "bytes": 38400,
+      "sha256": "b5652d19299080e853e41c9eabf46c1d5d1b8c43a6c1d1cdad3ee896df67013c"
+    },
+    {
+      "path": "motions/otokam/vol2/original/ot0510_ピース.vmd",
+      "bytes": 23302,
+      "sha256": "384d2e74526bbbe05036ac7b91c5f8e5f361d79e585161c9cf2b22f90f2efb6b"
+    },
+    {
+      "path": "motions/otokam/vol2/original/ot0510_応援_ループ.vmd",
+      "bytes": 32222,
+      "sha256": "ba10bbd61e93e5d0d96a8dd0404a28d57d6f92d22e4c66f43271fd375fc70de9"
+    },
+    {
+      "path": "motions/otokam/vol2/original/ot0510_笑い_口あて.vmd",
+      "bytes": 31447,
+      "sha256": "6b4ee654f2d8f0e32bc6d2788abf06706ba1e4341e9aefa66703571aace156ee"
+    },
+    {
+      "path": "motions/otokam/vol2/original/ot0510_考える_ループ.vmd",
+      "bytes": 11178,
+      "sha256": "f36a209ce229b45ca1e13c4ee3e58afc01ee151c5052f8e402225fb102ddc86d"
+    },
+    {
+      "path": "motions/otokam/vol2/original/ot0510_苦笑い_ループ.vmd",
+      "bytes": 10979,
+      "sha256": "fa7effe40c19e7959c83c18099c4fb902d31b7779067269a7a8b5afb4f58d436"
+    },
+    {
+      "path": "motions/otokam/vol2/original/ot0510_飛行機ごっこ_ループ.vmd",
+      "bytes": 3450,
+      "sha256": "14e46c3313a1815268ee0eb6fb47894afffafb00fef3195ff21a185deb950069"
+    },
+    {
+      "path": "motions/otokam/vol2/original/ot0510_驚き_腕バタバタ_ループ.vmd",
+      "bytes": 19468,
+      "sha256": "7589d37c0d2c7be620bd6b1a27889de1fefcb6e17341556135bfe3c5d35d5122"
+    },
+    {
+      "path": "motions/otokam/vol3/original/ot0510_no.vmd",
+      "bytes": 8759,
+      "sha256": "19a9ef7f45476bfe1e345547abe3caaa990d2c0e3f4d5f1d8e043a394677d95d"
+    },
+    {
+      "path": "motions/otokam/vol3/original/ot0510_yes.vmd",
+      "bytes": 14060,
+      "sha256": "47c2a8706c8281157329e62efb6fa7e91a7a7f6a7a9b21b88e437002814ce403"
+    },
+    {
+      "path": "vmd_catalog.yaml",
+      "bytes": 13551,
+      "sha256": "9e56345d8096391d2e3e44f314235a09a4f4dcde8f26e23fa10086bd2ee52614"
+    }
+  ],
+  "motions": [
+    {
+      "motion_id": "sample_otokam_001",
+      "file": "bundled/motions/otokam/vol1/original/ot0510_やれやれ.vmd",
+      "title": "ot0510_やれやれ.vmd",
+      "author": "オトカム (Otokam_0510)",
+      "source_url": "https://bowlroll.net/file/236370",
+      "terms_file": "bundled/licenses/otokam/vol1/Readme.txt",
+      "license_record": "bundled/licenses/otokam/vol1.yaml",
+      "modified": false,
+      "modifications": "なし。原本のVMDをそのままコピー。",
+      "sha256": "cb2da5a1e3c59180387a34ae0fbf6d46843b594500f653f95772cd393ea99a69",
+      "upstream_original_filename": "ot0510_やれやれ.vmd",
+      "upstream_original_sha256": "cb2da5a1e3c59180387a34ae0fbf6d46843b594500f653f95772cd393ea99a69",
+      "enabled": false
+    },
+    {
+      "motion_id": "sample_otokam_002",
+      "file": "bundled/motions/otokam/vol1/original/ot0510_バキュン.vmd",
+      "title": "ot0510_バキュン.vmd",
+      "author": "オトカム (Otokam_0510)",
+      "source_url": "https://bowlroll.net/file/236370",
+      "terms_file": "bundled/licenses/otokam/vol1/Readme.txt",
+      "license_record": "bundled/licenses/otokam/vol1.yaml",
+      "modified": false,
+      "modifications": "なし。原本のVMDをそのままコピー。",
+      "sha256": "354b34c8786c03f6d82d9a7e157225efbdac7e4450b11eeaedbf1334175b8a75",
+      "upstream_original_filename": "ot0510_バキュン.vmd",
+      "upstream_original_sha256": "354b34c8786c03f6d82d9a7e157225efbdac7e4450b11eeaedbf1334175b8a75",
+      "enabled": true
+    },
+    {
+      "motion_id": "sample_otokam_003",
+      "file": "bundled/motions/otokam/vol1/original/ot0510_リズム_大.vmd",
+      "title": "ot0510_リズム_大.vmd",
+      "author": "オトカム (Otokam_0510)",
+      "source_url": "https://bowlroll.net/file/236370",
+      "terms_file": "bundled/licenses/otokam/vol1/Readme.txt",
+      "license_record": "bundled/licenses/otokam/vol1.yaml",
+      "modified": false,
+      "modifications": "なし。原本のVMDをそのままコピー。",
+      "sha256": "55e7041d1d3fa3cc69164ba94fd914f921b13711a33611076ce7a181074c8e08",
+      "upstream_original_filename": "ot0510_リズム_大.vmd",
+      "upstream_original_sha256": "55e7041d1d3fa3cc69164ba94fd914f921b13711a33611076ce7a181074c8e08",
+      "enabled": true
+    },
+    {
+      "motion_id": "sample_otokam_005",
+      "file": "bundled/motions/otokam/vol1/original/ot0510_リズム_小.vmd",
+      "title": "ot0510_リズム_小.vmd",
+      "author": "オトカム (Otokam_0510)",
+      "source_url": "https://bowlroll.net/file/236370",
+      "terms_file": "bundled/licenses/otokam/vol1/Readme.txt",
+      "license_record": "bundled/licenses/otokam/vol1.yaml",
+      "modified": false,
+      "modifications": "なし。原本のVMDをそのままコピー。",
+      "sha256": "8828aac34d4bfc5190b7677874afad8a7a990d41fe5fb0a58d4f3abf938508b2",
+      "upstream_original_filename": "ot0510_リズム_小.vmd",
+      "upstream_original_sha256": "8828aac34d4bfc5190b7677874afad8a7a990d41fe5fb0a58d4f3abf938508b2",
+      "enabled": true
+    },
+    {
+      "motion_id": "sample_otokam_007",
+      "file": "bundled/motions/otokam/vol1/original/ot0510_喜びジャンプ.vmd",
+      "title": "ot0510_喜びジャンプ.vmd",
+      "author": "オトカム (Otokam_0510)",
+      "source_url": "https://bowlroll.net/file/236370",
+      "terms_file": "bundled/licenses/otokam/vol1/Readme.txt",
+      "license_record": "bundled/licenses/otokam/vol1.yaml",
+      "modified": false,
+      "modifications": "なし。原本のVMDをそのままコピー。",
+      "sha256": "eda2b3050fca2f8330ff6bcecc76bb9e1db5d00c86ce0cc520514b069a421ab6",
+      "upstream_original_filename": "ot0510_喜びジャンプ.vmd",
+      "upstream_original_sha256": "eda2b3050fca2f8330ff6bcecc76bb9e1db5d00c86ce0cc520514b069a421ab6",
+      "enabled": false
+    },
+    {
+      "motion_id": "sample_otokam_009",
+      "file": "bundled/motions/otokam/vol1/original/ot0510_指令.vmd",
+      "title": "ot0510_指令.vmd",
+      "author": "オトカム (Otokam_0510)",
+      "source_url": "https://bowlroll.net/file/236370",
+      "terms_file": "bundled/licenses/otokam/vol1/Readme.txt",
+      "license_record": "bundled/licenses/otokam/vol1.yaml",
+      "modified": false,
+      "modifications": "なし。原本のVMDをそのままコピー。",
+      "sha256": "859cfbd101e3c9e92c6612c7fe253c4577e2adb2042fc8343fee6fa665686f94",
+      "upstream_original_filename": "ot0510_指令.vmd",
+      "upstream_original_sha256": "859cfbd101e3c9e92c6612c7fe253c4577e2adb2042fc8343fee6fa665686f94",
+      "enabled": false
+    },
+    {
+      "motion_id": "sample_otokam_010",
+      "file": "bundled/motions/otokam/vol1/original/ot0510_胸に秘めたる.vmd",
+      "title": "ot0510_胸に秘めたる.vmd",
+      "author": "オトカム (Otokam_0510)",
+      "source_url": "https://bowlroll.net/file/236370",
+      "terms_file": "bundled/licenses/otokam/vol1/Readme.txt",
+      "license_record": "bundled/licenses/otokam/vol1.yaml",
+      "modified": false,
+      "modifications": "なし。原本のVMDをそのままコピー。",
+      "sha256": "89caa86bfc0aa018f47f0a61994db102a0856310fb017cd72af3de5335a64689",
+      "upstream_original_filename": "ot0510_胸に秘めたる.vmd",
+      "upstream_original_sha256": "89caa86bfc0aa018f47f0a61994db102a0856310fb017cd72af3de5335a64689",
+      "enabled": true
+    },
+    {
+      "motion_id": "sample_otokam_011",
+      "file": "bundled/motions/otokam/vol1/original/ot0510_腕ポンポン.vmd",
+      "title": "ot0510_腕ポンポン.vmd",
+      "author": "オトカム (Otokam_0510)",
+      "source_url": "https://bowlroll.net/file/236370",
+      "terms_file": "bundled/licenses/otokam/vol1/Readme.txt",
+      "license_record": "bundled/licenses/otokam/vol1.yaml",
+      "modified": false,
+      "modifications": "なし。原本のVMDをそのままコピー。",
+      "sha256": "c6736e6891adcbf7af52a7a89f7192087b15e150bea8b2a5666ea786957d1eb3",
+      "upstream_original_filename": "ot0510_腕ポンポン.vmd",
+      "upstream_original_sha256": "c6736e6891adcbf7af52a7a89f7192087b15e150bea8b2a5666ea786957d1eb3",
+      "enabled": true
+    },
+    {
+      "motion_id": "sample_otokam_012",
+      "file": "bundled/motions/otokam/vol1/original/ot0510_興味深い.vmd",
+      "title": "ot0510_興味深い.vmd",
+      "author": "オトカム (Otokam_0510)",
+      "source_url": "https://bowlroll.net/file/236370",
+      "terms_file": "bundled/licenses/otokam/vol1/Readme.txt",
+      "license_record": "bundled/licenses/otokam/vol1.yaml",
+      "modified": false,
+      "modifications": "なし。原本のVMDをそのままコピー。",
+      "sha256": "d04a6cd83d1dd309650b881f156987d7011572d1361bf4d83c3f35abde4f1e6e",
+      "upstream_original_filename": "ot0510_興味深い.vmd",
+      "upstream_original_sha256": "d04a6cd83d1dd309650b881f156987d7011572d1361bf4d83c3f35abde4f1e6e",
+      "enabled": true
+    },
+    {
+      "motion_id": "sample_otokam_016",
+      "file": "bundled/motions/otokam/vol1/original/ot0510_驚き_背中見せ.vmd",
+      "title": "ot0510_驚き_背中見せ.vmd",
+      "author": "オトカム (Otokam_0510)",
+      "source_url": "https://bowlroll.net/file/236370",
+      "terms_file": "bundled/licenses/otokam/vol1/Readme.txt",
+      "license_record": "bundled/licenses/otokam/vol1.yaml",
+      "modified": false,
+      "modifications": "なし。原本のVMDをそのままコピー。",
+      "sha256": "700cace39fb6cb07412eec417b00b991acef454b8a1c22539c58ac1f45200e94",
+      "upstream_original_filename": "ot0510_驚き_背中見せ.vmd",
+      "upstream_original_sha256": "700cace39fb6cb07412eec417b00b991acef454b8a1c22539c58ac1f45200e94",
+      "enabled": false
+    },
+    {
+      "motion_id": "sample_otokam_017",
+      "file": "bundled/motions/otokam/vol2/original/ot0510_ひらめく.vmd",
+      "title": "ot0510_ひらめく.vmd",
+      "author": "オトカム (Otokam_0510)",
+      "source_url": "https://bowlroll.net/file/239977",
+      "terms_file": "bundled/licenses/otokam/vol2/Readme.txt",
+      "license_record": "bundled/licenses/otokam/vol2.yaml",
+      "modified": false,
+      "modifications": "なし。原本のVMDをそのままコピー。",
+      "sha256": "767e85fb22d54615de57cbe121da4bbd1fddcfa49a933341ade1faca08d1f40c",
+      "upstream_original_filename": "ot0510_ひらめく.vmd",
+      "upstream_original_sha256": "767e85fb22d54615de57cbe121da4bbd1fddcfa49a933341ade1faca08d1f40c",
+      "enabled": true
+    },
+    {
+      "motion_id": "sample_otokam_018",
+      "file": "bundled/motions/otokam/vol2/original/ot0510_ドヤ.vmd",
+      "title": "ot0510_ドヤ.vmd",
+      "author": "オトカム (Otokam_0510)",
+      "source_url": "https://bowlroll.net/file/239977",
+      "terms_file": "bundled/licenses/otokam/vol2/Readme.txt",
+      "license_record": "bundled/licenses/otokam/vol2.yaml",
+      "modified": false,
+      "modifications": "なし。原本のVMDをそのままコピー。",
+      "sha256": "b5652d19299080e853e41c9eabf46c1d5d1b8c43a6c1d1cdad3ee896df67013c",
+      "upstream_original_filename": "ot0510_ドヤ.vmd",
+      "upstream_original_sha256": "b5652d19299080e853e41c9eabf46c1d5d1b8c43a6c1d1cdad3ee896df67013c",
+      "enabled": true
+    },
+    {
+      "motion_id": "sample_otokam_019",
+      "file": "bundled/motions/otokam/vol2/original/ot0510_ピース.vmd",
+      "title": "ot0510_ピース.vmd",
+      "author": "オトカム (Otokam_0510)",
+      "source_url": "https://bowlroll.net/file/239977",
+      "terms_file": "bundled/licenses/otokam/vol2/Readme.txt",
+      "license_record": "bundled/licenses/otokam/vol2.yaml",
+      "modified": false,
+      "modifications": "なし。原本のVMDをそのままコピー。",
+      "sha256": "384d2e74526bbbe05036ac7b91c5f8e5f361d79e585161c9cf2b22f90f2efb6b",
+      "upstream_original_filename": "ot0510_ピース.vmd",
+      "upstream_original_sha256": "384d2e74526bbbe05036ac7b91c5f8e5f361d79e585161c9cf2b22f90f2efb6b",
+      "enabled": true
+    },
+    {
+      "motion_id": "sample_otokam_020",
+      "file": "bundled/motions/otokam/vol2/original/ot0510_応援_ループ.vmd",
+      "title": "ot0510_応援_ループ.vmd",
+      "author": "オトカム (Otokam_0510)",
+      "source_url": "https://bowlroll.net/file/239977",
+      "terms_file": "bundled/licenses/otokam/vol2/Readme.txt",
+      "license_record": "bundled/licenses/otokam/vol2.yaml",
+      "modified": false,
+      "modifications": "なし。原本のVMDをそのままコピー。",
+      "sha256": "ba10bbd61e93e5d0d96a8dd0404a28d57d6f92d22e4c66f43271fd375fc70de9",
+      "upstream_original_filename": "ot0510_応援_ループ.vmd",
+      "upstream_original_sha256": "ba10bbd61e93e5d0d96a8dd0404a28d57d6f92d22e4c66f43271fd375fc70de9",
+      "enabled": false
+    },
+    {
+      "motion_id": "sample_otokam_023",
+      "file": "bundled/motions/otokam/vol2/original/ot0510_笑い_口あて.vmd",
+      "title": "ot0510_笑い_口あて.vmd",
+      "author": "オトカム (Otokam_0510)",
+      "source_url": "https://bowlroll.net/file/239977",
+      "terms_file": "bundled/licenses/otokam/vol2/Readme.txt",
+      "license_record": "bundled/licenses/otokam/vol2.yaml",
+      "modified": false,
+      "modifications": "なし。原本のVMDをそのままコピー。",
+      "sha256": "6b4ee654f2d8f0e32bc6d2788abf06706ba1e4341e9aefa66703571aace156ee",
+      "upstream_original_filename": "ot0510_笑い_口あて.vmd",
+      "upstream_original_sha256": "6b4ee654f2d8f0e32bc6d2788abf06706ba1e4341e9aefa66703571aace156ee",
+      "enabled": true
+    },
+    {
+      "motion_id": "sample_otokam_024",
+      "file": "bundled/motions/otokam/vol2/original/ot0510_考える_ループ.vmd",
+      "title": "ot0510_考える_ループ.vmd",
+      "author": "オトカム (Otokam_0510)",
+      "source_url": "https://bowlroll.net/file/239977",
+      "terms_file": "bundled/licenses/otokam/vol2/Readme.txt",
+      "license_record": "bundled/licenses/otokam/vol2.yaml",
+      "modified": false,
+      "modifications": "なし。原本のVMDをそのままコピー。",
+      "sha256": "f36a209ce229b45ca1e13c4ee3e58afc01ee151c5052f8e402225fb102ddc86d",
+      "upstream_original_filename": "ot0510_考える_ループ.vmd",
+      "upstream_original_sha256": "f36a209ce229b45ca1e13c4ee3e58afc01ee151c5052f8e402225fb102ddc86d",
+      "enabled": true
+    },
+    {
+      "motion_id": "sample_otokam_025",
+      "file": "bundled/motions/otokam/vol2/original/ot0510_苦笑い_ループ.vmd",
+      "title": "ot0510_苦笑い_ループ.vmd",
+      "author": "オトカム (Otokam_0510)",
+      "source_url": "https://bowlroll.net/file/239977",
+      "terms_file": "bundled/licenses/otokam/vol2/Readme.txt",
+      "license_record": "bundled/licenses/otokam/vol2.yaml",
+      "modified": false,
+      "modifications": "なし。原本のVMDをそのままコピー。",
+      "sha256": "fa7effe40c19e7959c83c18099c4fb902d31b7779067269a7a8b5afb4f58d436",
+      "upstream_original_filename": "ot0510_苦笑い_ループ.vmd",
+      "upstream_original_sha256": "fa7effe40c19e7959c83c18099c4fb902d31b7779067269a7a8b5afb4f58d436",
+      "enabled": true
+    },
+    {
+      "motion_id": "sample_otokam_027",
+      "file": "bundled/motions/otokam/vol2/original/ot0510_飛行機ごっこ_ループ.vmd",
+      "title": "ot0510_飛行機ごっこ_ループ.vmd",
+      "author": "オトカム (Otokam_0510)",
+      "source_url": "https://bowlroll.net/file/239977",
+      "terms_file": "bundled/licenses/otokam/vol2/Readme.txt",
+      "license_record": "bundled/licenses/otokam/vol2.yaml",
+      "modified": false,
+      "modifications": "なし。原本のVMDをそのままコピー。",
+      "sha256": "14e46c3313a1815268ee0eb6fb47894afffafb00fef3195ff21a185deb950069",
+      "upstream_original_filename": "ot0510_飛行機ごっこ_ループ.vmd",
+      "upstream_original_sha256": "14e46c3313a1815268ee0eb6fb47894afffafb00fef3195ff21a185deb950069",
+      "enabled": true
+    },
+    {
+      "motion_id": "sample_otokam_028",
+      "file": "bundled/motions/otokam/vol2/original/ot0510_驚き_腕バタバタ_ループ.vmd",
+      "title": "ot0510_驚き_腕バタバタ_ループ.vmd",
+      "author": "オトカム (Otokam_0510)",
+      "source_url": "https://bowlroll.net/file/239977",
+      "terms_file": "bundled/licenses/otokam/vol2/Readme.txt",
+      "license_record": "bundled/licenses/otokam/vol2.yaml",
+      "modified": false,
+      "modifications": "なし。原本のVMDをそのままコピー。",
+      "sha256": "7589d37c0d2c7be620bd6b1a27889de1fefcb6e17341556135bfe3c5d35d5122",
+      "upstream_original_filename": "ot0510_驚き_腕バタバタ_ループ.vmd",
+      "upstream_original_sha256": "7589d37c0d2c7be620bd6b1a27889de1fefcb6e17341556135bfe3c5d35d5122",
+      "enabled": false
+    },
+    {
+      "motion_id": "sample_otokam_029",
+      "file": "bundled/motions/otokam/vol3/original/ot0510_no.vmd",
+      "title": "ot0510_no.vmd",
+      "author": "オトカム (Otokam_0510)",
+      "source_url": "https://bowlroll.net/file/245803",
+      "terms_file": "bundled/licenses/otokam/vol3/Readme.txt",
+      "license_record": "bundled/licenses/otokam/vol3.yaml",
+      "modified": false,
+      "modifications": "なし。原本のVMDをそのままコピー。",
+      "sha256": "19a9ef7f45476bfe1e345547abe3caaa990d2c0e3f4d5f1d8e043a394677d95d",
+      "upstream_original_filename": "ot0510_no.vmd",
+      "upstream_original_sha256": "19a9ef7f45476bfe1e345547abe3caaa990d2c0e3f4d5f1d8e043a394677d95d",
+      "enabled": true
+    },
+    {
+      "motion_id": "sample_otokam_030",
+      "file": "bundled/motions/otokam/vol3/original/ot0510_yes.vmd",
+      "title": "ot0510_yes.vmd",
+      "author": "オトカム (Otokam_0510)",
+      "source_url": "https://bowlroll.net/file/245803",
+      "terms_file": "bundled/licenses/otokam/vol3/Readme.txt",
+      "license_record": "bundled/licenses/otokam/vol3.yaml",
+      "modified": false,
+      "modifications": "なし。原本のVMDをそのままコピー。",
+      "sha256": "47c2a8706c8281157329e62efb6fa7e91a7a7f6a7a9b21b88e437002814ce403",
+      "upstream_original_filename": "ot0510_yes.vmd",
+      "upstream_original_sha256": "47c2a8706c8281157329e62efb6fa7e91a7a7f6a7a9b21b88e437002814ce403",
+      "enabled": true
+    },
+    {
+      "motion_id": "sample_otokam_048",
+      "file": "bundled/motions/otokam/idle/fitted/ot0510_待機_両手後ろ_まばたき付き.vmd",
+      "title": "ot0510_待機_両手後ろ_まばたき付き.vmd",
+      "author": "オトカム (Otokam_0510)",
+      "source_url": "https://bowlroll.net/file/237411",
+      "terms_file": "bundled/licenses/otokam/idle/Readme.txt",
+      "license_record": "bundled/licenses/otokam/idle_hands_behind.yaml",
+      "modified": true,
+      "modifications": "両手後ろ：左右腕26キーに親座標X軸-8度を合成。時刻・移動・補間・他ボーン・瞬きを保持。",
+      "sha256": "a9d98b20d75488812760b9f985fe3a05aa0a67501d0d16d929125925dc83e0de",
+      "upstream_original_filename": "ot0510_待機_両手後ろ_まばたき付き.vmd",
+      "upstream_original_sha256": "5031c7c0c895cf313e7046a5139557f50fc0f60d4afb85c57a2f83f0717d6e3e",
+      "enabled": true
+    },
+    {
+      "motion_id": "sample_otokam_050",
+      "file": "bundled/motions/otokam/idle/original/ot0510_待機_元気_まばたき付き.vmd",
+      "title": "ot0510_待機_元気_まばたき付き.vmd",
+      "author": "オトカム (Otokam_0510)",
+      "source_url": "https://bowlroll.net/file/237411",
+      "terms_file": "bundled/licenses/otokam/idle/Readme.txt",
+      "license_record": "bundled/licenses/otokam/idle.yaml",
+      "modified": false,
+      "modifications": "なし。原本のVMDをそのままコピー。",
+      "sha256": "5dee5ea6adee71e8272426f591930ee56e004ee9962bca992542af5732d4d43c",
+      "upstream_original_filename": "ot0510_待機_元気_まばたき付き.vmd",
+      "upstream_original_sha256": "5dee5ea6adee71e8272426f591930ee56e004ee9962bca992542af5732d4d43c",
+      "enabled": false
+    },
+    {
+      "motion_id": "sample_otokam_052",
+      "file": "bundled/motions/otokam/idle/original/ot0510_待機_右手腰あて_まばたき付き.vmd",
+      "title": "ot0510_待機_右手腰あて_まばたき付き.vmd",
+      "author": "オトカム (Otokam_0510)",
+      "source_url": "https://bowlroll.net/file/237411",
+      "terms_file": "bundled/licenses/otokam/idle/Readme.txt",
+      "license_record": "bundled/licenses/otokam/idle.yaml",
+      "modified": false,
+      "modifications": "なし。原本のVMDをそのままコピー。",
+      "sha256": "480c198a27a6cc123887f7879b75fd0f3dde8483b01d3d4b6429115dea21bcf2",
+      "upstream_original_filename": "ot0510_待機_右手腰あて_まばたき付き.vmd",
+      "upstream_original_sha256": "480c198a27a6cc123887f7879b75fd0f3dde8483b01d3d4b6429115dea21bcf2",
+      "enabled": true
+    },
+    {
+      "motion_id": "sample_otokam_056",
+      "file": "bundled/motions/otokam/idle/fitted/ot0510_待機_左手腰あて_まばたき付き_右袖余裕8度.vmd",
+      "title": "ot0510_待機_左手腰あて_まばたき付き_右袖余裕8度.vmd",
+      "author": "オトカム (Otokam_0510)",
+      "source_url": "https://bowlroll.net/file/237411",
+      "terms_file": "bundled/licenses/otokam/idle/Readme.txt",
+      "license_record": "bundled/licenses/otokam/idle_waist.yaml",
+      "modified": true,
+      "modifications": "左手腰当て：右腕フレームに親座標Z軸-8度を合成。左腕・他ボーン・時刻・移動・補間・瞬きを保持。",
+      "sha256": "0639af0f824d18e483946d2db8eaa1198d5a15b09e8f616309823aded56bb641",
+      "upstream_original_filename": "ot0510_待機_左手腰あて_まばたき付き.vmd",
+      "upstream_original_sha256": "2b4741bd1d0f36d2cad31ef77fe16d1f7fbd268cf3ba4155896f29eec2c6e728",
+      "enabled": true
+    },
+    {
+      "motion_id": "sample_otokam_058",
+      "file": "bundled/motions/otokam/idle/fitted/ot0510_待機_猫背_まばたき付き_猫背姿勢調整_袖余裕.vmd",
+      "title": "ot0510_待機_猫背_まばたき付き_猫背姿勢調整_袖余裕.vmd",
+      "author": "オトカム (Otokam_0510)",
+      "source_url": "https://bowlroll.net/file/237411",
+      "terms_file": "bundled/licenses/otokam/idle/Readme.txt",
+      "license_record": "bundled/licenses/otokam/idle_catback.yaml",
+      "modified": true,
+      "modifications": "猫背：左右腕に親座標Z軸+15度/-15度、上半身2にX軸-10度、頭にX軸+10度を合成。原本の20秒、全キー時刻・移動・補間・瞬きを保持。開始・終了キーの追加なし。",
+      "sha256": "d088c73475d7f76dda46a4137024982f694907578f0b8cb0a88fdf93a430d685",
+      "upstream_original_filename": "ot0510_待機_猫背_まばたき付き.vmd",
+      "upstream_original_sha256": "888c5de427465e753ea8a86f8f031f22b36cad0f0a8efc279aa0c27a69f64ef8",
+      "enabled": true
+    }
+  ],
+  "count": 26,
+  "modified_count": 3,
+  "local_terms_checked": true,
+  "latest_official_readmes_verified": false,
+  "publication_authorized": false,
+  "redistribution_basis": "Preserved source Readmes; attribution, terms inheritance and modification notices required"
+}

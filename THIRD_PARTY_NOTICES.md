@@ -2,7 +2,7 @@
 
 ## この文書の目的
 
-2026-10-10のソース候補は、既存UMTNativePlugin.dllだけを第三者バイナリとして同梱します。対象DLLのSHA256、対象コミット、Bullet 2.75保存アーカイブのハッシュを照合し、MIT・zlib本文を [licenses](licenses/README.md) に補いました。Pythonパッケージ本体、PMX・VMD・画像・ボイスライブラリ・生成音声は同梱しません。第三者VMDは0件です。利用者のローカル利用の記録を再配布許諾と扱いません。
+2026-10-14の修正版候補は、再配布条件を記録したオトカム氏の採用済みVMD26件と既存UMTNativePlugin.dllを同梱します。VMDの4パックの原文Readme、作者・正式な配布元・条件・補正3件の変更内容は [同梱VMD](docs/bundled_motions_ja.md) と bundled/FILE_MANIFEST.json に保持します。VMDは本アプリのMIT Licenseへ変更しません。公式配布物の最新版Readmeとの完全一致は未確認として残し、今回は非公開の修正のみ行います。対象DLLのSHA256、対象コミット、Bullet 2.75保存アーカイブのハッシュを照合し、MIT・zlib本文を [licenses](licenses/README.md) に補いました。Pythonパッケージ本体、PMX・画像・ボイスライブラリ・生成音声は同梱しません。VMD0件だった旧候補を今回修正しました。利用者のローカル利用の記録を再配布許諾と扱いません。
 
 multi-llm-companionのLICENSEに記載したMIT License候補は、権利者がこのリポジトリのライセンスとして提供できる自作コードと自作文書だけを対象とします。
 

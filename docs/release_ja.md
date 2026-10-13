@@ -1,14 +1,14 @@
 # v1.0候補のダウンロードと導入
 
-配布版は **v1.0-rc.1（ソース版）** です。Windows 11とPython 3.12を使います。アプリ内部のパッケージ版は既存の0.23.0を維持しています。実行ファイルだけで動くインストーラーではなく、初回セットアップでPythonパッケージを取得します。
+修正版候補は **v1.0-rc.2（VMD同梱・非公開）** です。旧v1.0-rc.1の公開用リポジトリはPrivateへ戻しており、修正版のRelease公開・外部配布は行いません。Windows 11とPython 3.12を使います。アプリ内部のパッケージ版は既存の0.23.0を維持しています。実行ファイルだけで動くインストーラーではなく、初回セットアップでPythonパッケージを取得します。
 
-配布先は [GitHub Release](https://github.com/pocketrocket350/multi-llm-companion-public/releases/tag/v1.0-rc.1) です。雨衣PMX、VMD、画像、音声、VoiSona Talk本体・ボイス、音声認識モデルは同梱しません。初期状態は汎用2Dアバターと、APIキー不要のMock文字会話です。
+現在は手元の修正版候補ZIPを使います。将来の再公開には別の承認が必要です。[同梱VMD26件の出典・原文規約・改変内容](bundled_motions_ja.md)を添えます。雨衣PMX、画像、音声、VoiSona Talk本体・ボイス、音声認識モデルは同梱しません。初期状態は汎用2Dアバターと、APIキー不要のMock文字会話です。
 
 ## ダウンロードして起動する
 
-1. 上のReleaseページを開き、下部の **Assets** を開きます。`multi-llm-companion-v1.0-rc.1-source.zip` と `SHA256SUMS.txt` をダウンロードします。初めて使う場合は、この名前のZIPを選んでください。
+1. 手元の修正版候補ファイルを確認します。将来再公開した場合は、承認されたReleaseページの **Assets** から取得します。`multi-llm-companion-v1.0-rc.2-source.zip` と `SHA256SUMS.txt` をダウンロードします。初めて使う場合は、この名前のZIPを選んでください。
 2. ZIPを右クリックして **すべて展開** を選びます。自分の「ドキュメント」など、書き込みできる新しいフォルダーへ展開します。既存のアプリフォルダーへ重ねて展開しません。ZIPの中を直接開いた状態では実行しません。
-3. 展開先の `multi-llm-companion-v1.0-rc.1` フォルダーを開きます。`README.md`、`setup_windows.bat`、`run.bat` が見えることを確認します。
+3. 展開先の `multi-llm-companion-v1.0-rc.2` フォルダーを開きます。`README.md`、`setup_windows.bat`、`run.bat` が見えることを確認します。
 4. Python 3.12がなければ、[Python公式のWindows配布一覧](https://www.python.org/downloads/windows/)から3.12系を導入します。インストーラーの **Add python.exe to PATH** を有効にします。初回セットアップにはインターネット接続が必要です。
 5. `setup_windows.bat` をダブルクリックし、**セットアップが正常に終わりました** と出るまで待ちます。エラーが出たらそこで止め、下の復旧案内へ進みます。
 6. `run.bat` をダブルクリックします。入力欄へ「こんにちは」と書き、Enterまたは三角矢印の **送信** を押します。Mockの回答が出れば、文字会話の起動は成功です。Mockは実LLMの会話品質を評価する機能ではありません。
@@ -26,14 +26,14 @@ Assetsには `FILE_MANIFEST.json`（ファイル一覧とSHA256）、`VERIFICATI
 ZIPの取り違えやダウンロード破損を確かめるには、ZIPがあるフォルダーの空白部分を右クリックし、**ターミナルで開く** を選びます。PowerShellへ次を貼り付けます。
 
 ```powershell
-Get-FileHash -Algorithm SHA256 -LiteralPath '.\multi-llm-companion-v1.0-rc.1-source.zip'
+Get-FileHash -Algorithm SHA256 -LiteralPath '.\multi-llm-companion-v1.0-rc.2-source.zip'
 ```
 
 表示された `Hash` が `SHA256SUMS.txt` の同じZIP名の値と、大文字・小文字を除いて一致すれば成功です。不一致ならZIPを実行せず、正しいReleaseから取り直してください。ハッシュは破損・取り違えの確認であり、すべての安全性や全環境の動作保証ではありません。
 
 ## 雨衣の音声・MMDで利用する
 
-Mock起動後、[基準構成の導入](v1_candidate_ja.md#2-現在採用する基準完全構成)、[LLM設定](providers_ja.md)、[音声](audio_ja.md)、[アバター](avatar_ja.md)、[VMD登録](vmd_catalog_ja.md)へ進んでください。素材とソフトは利用者自身が正規配布元から取得し、[利用条件と再配布条件](rights_and_credits_ja.md)を別々に確認します。APIキーはWindows環境変数から渡します。実APIを使う会話にはサービス料金が発生し得ます。
+Mock起動後、[基準構成の導入](v1_candidate_ja.md#2-現在採用する基準完全構成)、[LLM設定](providers_ja.md)、[音声](audio_ja.md)、[アバター](avatar_ja.md)、[VMD登録](vmd_catalog_ja.md)へ進んでください。同梱VMD26件はセットアップで配置済みです。未同梱のPMX・画像・音声・認識モデル・VoiSona等は利用者自身が正規配布元から取得し、[利用条件と再配布条件](rights_and_credits_ja.md)を別々に確認します。APIキーはWindows環境変数から渡します。実APIを使う会話にはサービス料金が発生し得ます。
 
 ## 検証範囲と既知の制限
 
