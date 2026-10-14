@@ -8,23 +8,23 @@
     },
     {
       "path": "licenses/otokam/idle.yaml",
-      "bytes": 1085,
-      "sha256": "d40dbf190da61d5e981e0b2f886baf3cd54318a98604a2bee800f7790195cc4c"
+      "bytes": 1054,
+      "sha256": "9a12964201af3417475588dc945f63e070900dacd33a6d4ec280d778fd02f86e"
     },
     {
       "path": "licenses/otokam/idle_catback.yaml",
-      "bytes": 1266,
-      "sha256": "c0aa5ec7fb0debbaf8c5b42872b9d6a9fc963e7b7be9e84248f6fb471bd4aa7e"
+      "bytes": 1235,
+      "sha256": "31da16719d12be12f306ef08718113d4add3f598d93ff5e4a34c66dbc8f4af2e"
     },
     {
       "path": "licenses/otokam/idle_hands_behind.yaml",
-      "bytes": 1177,
-      "sha256": "f49084b340c085c38d99506161a32f0f76ecac32a82b3308ba6a60ea232432ff"
+      "bytes": 1146,
+      "sha256": "2816dbd38f95530e5acd8fc61f74f5ba7ebf23b0441417cd48a899f1083a2317"
     },
     {
       "path": "licenses/otokam/idle_waist.yaml",
-      "bytes": 1190,
-      "sha256": "35a078bfa2e3233ced223fa2ac1b548eb02b629d0558e1b10bc021d625a7f135"
+      "bytes": 1159,
+      "sha256": "3ba7c2f7e4ad03eaf8995ca9e46840af5feab9acae91c5a64f9bd681a2d051b7"
     },
     {
       "path": "licenses/otokam/vol1/Readme.txt",
@@ -33,8 +33,8 @@
     },
     {
       "path": "licenses/otokam/vol1.yaml",
-      "bytes": 1077,
-      "sha256": "fe4e4c2e1d3866a969be8cfc753912b582ac4ef3c042e372d59ca52db8c9322b"
+      "bytes": 1046,
+      "sha256": "fc6dc749109375b7ddb5d65a14cba5f01b7ad64b70091bb09f1c828d6730890e"
     },
     {
       "path": "licenses/otokam/vol2/Readme.txt",
@@ -43,8 +43,8 @@
     },
     {
       "path": "licenses/otokam/vol2.yaml",
-      "bytes": 1077,
-      "sha256": "51e50430705a061ef6aebaec153909a133fbc31034728a991549f47972553e6a"
+      "bytes": 1046,
+      "sha256": "ab7f9f68a04793e34940cdfb4a2a223fe10b27ce0f5997c26897237f37e1bc3c"
     },
     {
       "path": "licenses/otokam/vol3/Readme.txt",
@@ -53,8 +53,8 @@
     },
     {
       "path": "licenses/otokam/vol3.yaml",
-      "bytes": 1077,
-      "sha256": "1e61ae1dc43849301df99fcea14d4a002fb9e4b5aba7defbf8ec8963dc9c3dea"
+      "bytes": 1046,
+      "sha256": "3139d247a98830528a8840adfc1bed6b9436e1f6a409599a72edc7a9bcdaab48"
     },
     {
       "path": "motions/otokam/idle/fitted/ot0510_待機_両手後ろ_まばたき付き.vmd",
@@ -587,7 +587,7 @@
   "count": 26,
   "modified_count": 3,
   "local_terms_checked": true,
-  "latest_official_readmes_verified": false,
+  "latest_official_readmes_verified": true,
   "publication_authorized": false,
-  "redistribution_basis": "Preserved source Readmes; attribution, terms inheritance and modification notices required"
+  "redistribution_basis": "Official archives checked on 2026-10-15; published MD5/SHA1 and bundled Readme bytes match. Attribution, terms inheritance and modification notices retained."
 }
