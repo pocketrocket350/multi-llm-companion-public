@@ -12,7 +12,7 @@
 
 ## セットアップで取得するパッケージ
 
-PySide6、httpx、pydantic、PyYAML、python-dotenv、Vosk、faster-whisper、CTranslate2、sounddevice、Panda3D、pytest、Ruffなどを使用します。パッケージ本体はソースZIPへ含めず、各パッケージのライセンスに従って導入します。Panda3DはBSD-3-Clause、同梱するBullet Physicsはzlibです。
+PySide6、httpx、pydantic、PyYAML、python-dotenv、Vosk、faster-whisper、CTranslate2、sounddevice、Panda3Dなどを使用します。パッケージ本体はソースZIPへ含めず、各パッケージのライセンスに従って導入します。Panda3DはBSD-3-Clause、同梱するBullet Physicsはzlibです。
 
 Pythonや依存パッケージを含む実行形式で再配布する場合は、実際に含める版に対応する本文・NOTICEと条件を確認してください。Qt/PySide6などの条件も個別に適用されます。
 

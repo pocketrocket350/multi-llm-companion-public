@@ -1042,7 +1042,9 @@ class ApplicationBackend:
             raise ApplicationError(str(exc)) from exc
         except Exception as exc:
             raise ApplicationError(
-                "能動発話の処理中に予期しないエラーが発生しました。test.batで確認してください。"
+                f"能動発話の処理中に予期しないエラーが発生しました（{type(exc).__name__}）。\n"
+                "アプリを終了し、run_debug.bat で起動し直してください。\n"
+                "解決しない場合は、この表示を控えて報告してください。"
             ) from exc
 
     def change_provider(self, provider_name: str) -> BackendStatus:
@@ -1102,7 +1104,9 @@ class ApplicationBackend:
         except Exception as exc:
             # 予期しない例外の詳細に秘密情報が含まれる可能性を避ける。
             raise ApplicationError(
-                "回答の処理中に予期しないエラーが発生しました。test.batで確認してください。"
+                f"回答の処理中に予期しないエラーが発生しました（{type(exc).__name__}）。\n"
+                "アプリを終了し、run_debug.bat で起動し直してください。\n"
+                "解決しない場合は、この表示を控えて報告してください。"
             ) from exc
 
         if self._service._stream_was_invalidated:

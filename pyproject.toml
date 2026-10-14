@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "multi-llm-companion"
-version = "0.23.0"
+version = "1.0.0rc3"
 description = "複数のLLMを切り替えて利用できるWindows向けデスクトップ会話アプリ"
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
@@ -23,12 +23,6 @@ dependencies = [
     "panda3d>=1.10.16,<1.11",
 ]
 
-[project.optional-dependencies]
-dev = [
-    "pytest>=8.3,<10.0",
-    "ruff>=0.8,<1.0",
-]
-
 [tool.setuptools]
 package-dir = {"" = "src"}
 
@@ -37,29 +31,3 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 "multi_llm_companion.ui" = ["native/UMTNativePlugin.dll"]
-
-[tool.pytest.ini_options]
-addopts = "-ra --strict-markers --basetemp=.test-tmp"
-pythonpath = ["src"]
-testpaths = ["tests"]
-
-[tool.ruff]
-line-length = 100
-target-version = "py312"
-# Git管理外のチェックアウトでも、生成物・外部環境は走査しない。
-extend-exclude = [
-    "tools/motion-converter/runtime",
-    "local",
-    ".codex-tmp",
-    ".codex-test-tmp-*",
-    ".test-*",
-    ".pytest-*",
-    ".venv_old",
-]
-
-[tool.ruff.lint]
-select = ["E4", "E7", "E9", "F", "I", "UP", "B", "SIM"]
-
-[tool.ruff.format]
-docstring-code-format = true
-quote-style = "double"

@@ -82,8 +82,8 @@ if not "%PIP_UPGRADE_RESULT%"=="0" echo %MSG_PRESS_CLOSE%
 if not "%PIP_UPGRADE_RESULT%"=="0" pause >nul
 if not "%PIP_UPGRADE_RESULT%"=="0" exit /b 1
 
-echo [3/5] アプリとテスト用パッケージをインストールしています...
-".venv\Scripts\python.exe" -m pip install -e ".[dev]"
+echo [3/5] アプリと必要なパッケージをインストールしています...
+".venv\Scripts\python.exe" -m pip install -e .
 set "INSTALL_RESULT=%ERRORLEVEL%"
 if not "%INSTALL_RESULT%"=="0" echo.
 if not "%INSTALL_RESULT%"=="0" echo %MSG_INSTALL_FAILED%

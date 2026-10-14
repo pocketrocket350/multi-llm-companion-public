@@ -31,4 +31,4 @@ Windows 11、Python 3.12、初回セットアップ用のインターネット�
 
 外部LLMには会話や関連する記憶などを送信し、利用料金が発生する場合があります。サービスの料金とデータの扱いを確認して設定してください。
 
-自作コード・文書には [MIT License](LICENSE)、同梱の第三者素材には [各提供元の条件](THIRD_PARTY_NOTICES.md) が適用されます。開発への参加は [CONTRIBUTING.md](CONTRIBUTING.md)、脆弱性の報告は [SECURITY.md](SECURITY.md) を参照してください。
+自作コード・文書には [MIT License](LICENSE)、同梱の第三者素材には [各提供元の条件](THIRD_PARTY_NOTICES.md) が適用されます。脆弱性の報告は [SECURITY.md](SECURITY.md) を参照してください。
