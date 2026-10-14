@@ -1,66 +1,21 @@
 # Third-Party Notices
 
-## この文書の目的
+このプロジェクトの [MIT License](LICENSE) は、自作コードと自作文書を対象とします。第三者のキャラクター・画像・音声・モデル・モーション・商標・外部サービス・生成物の条件を置き換えません。
 
-2026-10-14の修正版候補は、再配布条件を記録したオトカム氏の採用済みVMD26件と既存UMTNativePlugin.dllを同梱します。VMDの4パックの原文Readme、作者・正式な配布元・条件・補正3件の変更内容は [同梱VMD](docs/bundled_motions_ja.md) と bundled/FILE_MANIFEST.json に保持します。VMDは本アプリのMIT Licenseへ変更しません。公式配布物の最新版Readmeとの完全一致は未確認として残し、今回は非公開の修正のみ行います。対象DLLのSHA256、対象コミット、Bullet 2.75保存アーカイブのハッシュを照合し、MIT・zlib本文を [licenses](licenses/README.md) に補いました。Pythonパッケージ本体、PMX・画像・ボイスライブラリ・生成音声は同梱しません。VMD0件だった旧候補を今回修正しました。利用者のローカル利用の記録を再配布許諾と扱いません。
+## 同梱VMD
 
-multi-llm-companionのLICENSEに記載したMIT License候補は、権利者がこのリポジトリのライセンスとして提供できる自作コードと自作文書だけを対象とします。
+作者：**オトカム (Otokam_0510)**。26件のVMD、4パックの原文Readme、出典、権利記録を同梱します。原版23件と補正3件の一覧・変更内容・クレジットは [同梱VMD](docs/bundled_motions_ja.md)、ファイルごとのハッシュは [一覧](bundled/FILE_MANIFEST.json) に記載しています。VMDには作者の規約が適用されます。
 
-MIT Licenseは、第三者が権利を持つ次のものには適用されません。
+## 物理計算DLL
 
-- キャラクター、キャラクターデザイン、名称、設定
-- 画像、イラスト、写真、映像
-- 音声、楽曲、効果音、ボイスライブラリ、合成音声
-- 3Dモデル、MMDモデル、モーション、テクスチャ
-- ロゴ、商標、サービス名
-- 外部API、外部サービス、学習済みモデル
-- 外部サービスが生成した文章、画像、音声など
-- 利用者が後から追加した第三者素材
+`src/multi_llm_companion/ui/native/UMTNativePlugin.dll` はCandidum GamesのUMTNativePlugin（MIT）とBullet 2.75（zlib）を使用しています。対象コミット・DLLとアーカイブのハッシュ・改変パッチ・著作権およびライセンス本文は [licenses/README.md](licenses/README.md) に記載しています。
 
-これらを利用する場合は、各権利者のライセンス、利用規約、ガイドライン、法令を個別に確認してください。このリポジトリのMIT Licenseだけで利用許可を得たことにはなりません。
+## セットアップで取得するパッケージ
 
-## このリポジトリに含めないもの
+PySide6、httpx、pydantic、PyYAML、python-dotenv、Vosk、faster-whisper、CTranslate2、sounddevice、Panda3D、pytest、Ruffなどを使用します。パッケージ本体はソースZIPへ含めず、各パッケージのライセンスに従って導入します。Panda3DはBSD-3-Clause、同梱するBullet Physicsはzlibです。
 
-公開するリポジトリには、少なくとも次を含めません。
+Pythonや依存パッケージを含む実行形式で再配布する場合は、実際に含める版に対応する本文・NOTICEと条件を確認してください。Qt/PySide6などの条件も個別に適用されます。
 
-- 雨衣の公式画像
-- 雨衣のMMDモデル
-- VoiSonaのボイスライブラリ
-- VoiSonaで生成した音声
-- しぐれうい氏の画像や音声
-- 実在するAPIキー
-- 特定人物を本人として再現する人格設定
+## 利用者が導入するもの
 
-人格設定の見本には、第三者の人物や既存キャラクターを再現しないオリジナルキャラクターを使用します。
-
-## Pythonパッケージ
-
-このプロジェクトは、PySide6、httpx、pydantic、PyYAML、python-dotenv、Vosk、faster-whisper、CTranslate2、sounddevice、Panda3D、Bullet Physics、pytest、ruffなどの第三者パッケージを利用します。各パッケージには、それぞれの権利者が定めたライセンスと著作権表示があります。このプロジェクトのMIT Licenseは、それらのライセンスを置き換えません。
-
-第40段階のPMX剛体・衝突・ジョイント計算には、Panda3Dに含まれるBullet Physics連携を利用します。Panda3DはBSD-3-Clause License、Bullet Physicsはzlib Licenseで提供されています。配布物を作成するときは、実際に同梱するPanda3DとBulletのライセンス本文および著作権表示を確認して含めてください。
-
-第51段階では、PMXの6自由度ばねをPanda3Dの汎用モーターで近似せず、Candidum Gamesの`UMTNativePlugin`（MIT License）に含まれるBullet 2.75を利用します。DLLの出所は`CandidumGames/UnityMMDTools`および`CandidumGames/UMTNativePlugin`で、`UMTNativePlugin`のコミット`cf0d4c857044e29ba9ee90c915577707ecbeae3a`からローカルビルドしています。1/120秒固定刻みでもBullet 2.75の追加線形減衰しきい値が0.08単位系で機能するよう、`tools/umt_native_unit_scaled_damping.patch`の2行だけを適用しています。同梱DLLのSHA-256は`A69DBC3E55DD276F49BF07A330843BC8CDFC1AC78A1845C728858A6F7DB777FE`です。UMTNativePluginに含まれるBullet Physicsはzlib Licenseです。配布物には、UMTNativePluginのMIT License、Bulletのzlib License、著作権表示を実際に同梱するバージョンに対応させて含めてください。
-
-配布物を作成するときは、実際に採用したバージョンのパッケージ情報とライセンス本文を確認し、必要な表示や同梱を行ってください。特にGUI基盤であるQt/PySide6を再配布する場合は、その時点の公式ライセンス条件を確認してください。
-
-## 外部LLMおよびAPI
-
-Qwen、DeepSeek、OpenAIなどの名称、サービス、API、モデルは各提供者に帰属します。接続機能があることは、各提供者との提携、推薦、公式対応を意味しません。
-
-利用者は、各サービスについて次を確認する責任があります。
-
-- 利用規約とプライバシーポリシー
-- APIおよびモデルの利用許諾
-- 料金、利用上限、対象地域、年齢条件
-- 送信データと生成結果の取り扱い
-- 商用利用や再配布の条件
-
-## VoiSonaおよび将来追加する素材
-
-第2段階ではVoiSona TalkのREST APIへ接続しますが、VoiSona Talk本体、ボイスライブラリ、生成音声は同梱しません。VoskとWhisperの学習済みモデルも同梱せず、利用者が公式配布元とライセンスを確認してlocalフォルダへ配置します。ソフト本体のライセンスと、音声・キャラクター・生成物の利用条件は別に管理する必要があります。
-
-利用者が画像、音声、3Dモデル、人格設定などを追加する場合は、出所、権利者、ライセンス、利用条件、変更内容を記録してください。権利が確認できない素材は公開物へ含めないでください。
-
-第33段階のVMDカタログと`usage_confirmed`は、利用者が確認内容をローカルへ記録するための機能です。アプリまたはこのリポジトリが、第三者VMDの利用、改変、公開、再配布を許諾または保証するものではありません。通常はVMD本体と権利確認記録を`local`内で管理します。
-
-配布元が再配布を明示的に許可し、本プロジェクトでの配布条件、改変条件、クレジット条件を個別確認できたVMDは、公開物へ同梱する場合があります。その場合もVMDは第三者素材であり、本リポジトリのMIT Licenseの対象外です。作者、配布元、条件、改変の有無、必要なクレジットを公開文書へ記録します。
+雨衣の公式画像・MMD、VoiSona Talk本体・ボイスライブラリ・生成音声、Whisper/Voskの認識モデルは同梱しません。ソフト、素材、生成物の利用・公開・再配布には各権利者の条件が適用されます。[権利とクレジット](docs/rights_and_credits_ja.md) を参照してください。

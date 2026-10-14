@@ -2,7 +2,7 @@
 
 **オトカム氏のVMD 26件を、出典・原文Readme付きで同梱しています。** 初回の `setup_windows.bat` で配置されるため、手動登録は不要です。既存のカタログがある場合は上書きしません。
 
-VMDはアバターの動きを記録したファイルです。使うにはPMXモデルの導入が必要です。まだ2D表示の場合は [採用構成の導入](reference_setup_ja.md#2-採用した表情とpmxを導入する) へ進んでください。
+VMDはアバターの動きを記録したファイルです。使うにはPMXモデルの導入が必要です。まだ2D表示の場合は [MMDの導入](reference_setup_ja.md#1-表情設定とpmxを導入する) へ進んでください。
 
 ## 動きを見る・切り替える
 
@@ -21,4 +21,3 @@ VMDはアバターの動きを記録したファイルです。使うにはPMX�
 
 - [同梱VMDの出典・規約・補正内容](bundled_motions_ja.md)
 - [別のVMDを追加する・設定を調整する](vmd_catalog_reference_ja.md)
-- [過去の採用・試作の記録](development/vmd_catalog_history_ja.md)
