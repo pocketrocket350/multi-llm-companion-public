@@ -1,0 +1,370 @@
+# 採用済みPMXの技術設定。モデル・画像・人格・個人パスは含みません。
+# docs/reference_setup_ja.md に従いlocalへ別名でコピーして使います。
+# 3Dは無効のままです。正規PMXの配置後にlocal側だけを有効にします。
+display_name: 紬
+hair_color: '#684765'
+outfit_color: '#b87aa4'
+accent_color: '#d99ac1'
+three_d:
+  enabled: false
+  provider: pmx_preview
+  model_path: ''
+  vmd_catalog_path: local/vmd_catalog.yaml
+  vmd_motion_id: sample_otokam_048
+  motion_library_enabled: true
+  gesture_motion_ids: []
+  gesture_policy:
+    enabled: true
+    min_interval_seconds: 3.5
+    same_gesture_cooldown_seconds: 20
+    same_category_cooldown_seconds: 6
+    max_large_per_minute: 2
+    recent_motion_count: 5
+  renderer: mmd_runtime
+  fallback_renderer: legacy_pmx_preview
+  render_quality: standard
+  expression_presets:
+    neutral_soft:
+      morphs:
+        neutral_warm: 0.2
+        catalog_候補_疑い_1: 0.3
+    gentle_smile:
+      morphs:
+        joy_full: 0.8
+    sad_soft:
+      morphs:
+        sorrow_full: 0.9
+        mouth_sad: 1.0
+    angry_soft:
+      morphs:
+        angry_full: 1.0
+        mouth_clench: 0.65
+    embarrassed_soft:
+      morphs:
+        shy_eye: 0.55
+        shy_mouth: 0.65
+        blush: 1.0
+    surprised_soft:
+      morphs:
+        surprised_eye: 1.0
+        surprise_mouth: 1.0
+    候補_穏やか:
+      morphs:
+        catalog_候補_穏やか_1: 0.35
+    候補_真面目:
+      morphs:
+        catalog_候補_真面目_1: 1.0
+        catalog_候補_真面目_2: 0.45
+    候補_疑い:
+      morphs:
+        catalog_候補_疑い_1: 0.75
+        catalog_候補_疑い_2: 0.65
+    候補_やさしい:
+      morphs:
+        catalog_候補_やさしい_1: 0.55
+        catalog_候補_やさしい_2: 0.4
+    候補_あたたかい笑顔:
+      morphs:
+        catalog_候補_あたたかい笑顔_1: 1.0
+    候補_きらきら笑顔:
+      morphs:
+        catalog_候補_きらきら笑顔_1: 0.75
+        catalog_候補_きらきら笑顔_2: 1.0
+    候補_左ウィンク:
+      morphs:
+        catalog_候補_左ウィンク_1: 1.0
+        catalog_候補_左ウィンク_2: 0.75
+    候補_右ウィンク:
+      morphs:
+        catalog_候補_右ウィンク_1: 1.0
+        catalog_候補_右ウィンク_2: 0.75
+    候補_好意:
+      morphs:
+        catalog_候補_好意_1: 1.0
+        catalog_候補_好意_2: 0.8
+    候補_心配:
+      morphs:
+        catalog_候補_心配_1: 0.8
+        catalog_候補_心配_2: 1.0
+    候補_涙ぐむ:
+      morphs:
+        catalog_候補_涙ぐむ_1: 0.85
+        catalog_候補_涙ぐむ_2: 1.0
+        catalog_候補_涙ぐむ_3: 1.0
+    候補_絶望:
+      morphs:
+        catalog_候補_絶望_1: 0.85
+        catalog_候補_絶望_2: 1.0
+        catalog_候補_絶望_3: 0.8
+    候補_沈んだ顔:
+      morphs:
+        catalog_候補_沈んだ顔_1: 1.0
+        catalog_候補_沈んだ顔_2: 1.0
+    候補_強い怒り:
+      morphs:
+        catalog_候補_強い怒り_1: 1.0
+        catalog_候補_強い怒り_2: 0.8
+    候補_いらだち:
+      morphs:
+        catalog_候補_いらだち_1: 0.85
+        catalog_候補_いらだち_2: 0.8
+        catalog_候補_いらだち_3: 1.0
+    候補_熱い怒り:
+      morphs:
+        catalog_候補_熱い怒り_1: 1.0
+        catalog_候補_熱い怒り_2: 0.65
+        catalog_候補_熱い怒り_3: 1.0
+    候補_冷たい怒り:
+      morphs:
+        catalog_候補_冷たい怒り_1: 0.85
+        catalog_候補_冷たい怒り_2: 0.55
+        catalog_候補_冷たい怒り_3: 1.0
+        catalog_候補_冷たい怒り_4: 1.0
+    候補_はにかみ:
+      morphs:
+        catalog_候補_はにかみ_1: 0.2
+        catalog_候補_はにかみ_2: 0.35
+        catalog_候補_はにかみ_3: 0.55
+        catalog_候補_はにかみ_4: 1.0
+    候補_あわてる:
+      morphs:
+        catalog_候補_あわてる_1: 0.75
+        catalog_候補_あわてる_2: 0.65
+        catalog_候補_あわてる_3: 1.0
+    候補_照れ笑い:
+      morphs:
+        catalog_候補_照れ笑い_1: 1.0
+        catalog_候補_照れ笑い_2: 1.0
+    候補_緊張:
+      morphs:
+        catalog_候補_緊張_1: 0.8
+        catalog_候補_緊張_2: 0.8
+        catalog_候補_緊張_3: 1.0
+    候補_明るい驚き:
+      morphs:
+        catalog_候補_明るい驚き_1: 1.0
+        catalog_候補_明るい驚き_2: 1.0
+        catalog_候補_明るい驚き_3: 1.0
+    候補_呆然:
+      morphs:
+        catalog_候補_呆然_1: 1.0
+        catalog_候補_呆然_2: 0.45
+        catalog_候補_呆然_3: 0.65
+    候補_衝撃:
+      morphs:
+        catalog_候補_衝撃_1: 0.75
+        catalog_候補_衝撃_2: 0.55
+        catalog_候補_衝撃_3: 0.75
+        catalog_候補_衝撃_4: 1.0
+    候補_混乱:
+      morphs:
+        catalog_候補_混乱_1: 0.75
+        catalog_候補_混乱_2: 0.65
+        catalog_候補_混乱_3: 1.0
+    候補_いたずら:
+      morphs:
+        catalog_候補_いたずら_1: 0.45
+        catalog_候補_いたずら_2: 0.9
+        catalog_候補_いたずら_3: 0.6
+    候補_からかい:
+      morphs:
+        catalog_候補_からかい_1: 1.0
+        catalog_候補_からかい_2: 0.85
+    候補_感動:
+      morphs:
+        catalog_候補_感動_1: 1.0
+        catalog_候補_感動_2: 0.7
+        catalog_候補_感動_3: 1.0
+    候補_困惑:
+      morphs:
+        catalog_候補_困惑_1: 0.5
+        catalog_候補_困惑_2: 0.75
+        catalog_候補_困惑_3: 0.55
+        catalog_候補_困惑_4: 1.0
+    候補_打ちのめされる:
+      morphs:
+        catalog_候補_打ちのめされる_1: 1.0
+        catalog_候補_打ちのめされる_2: 1.0
+        catalog_候補_打ちのめされる_3: 1.0
+        catalog_候補_打ちのめされる_4: 1.0
+    候補_酸っぱい:
+      morphs:
+        catalog_候補_酸っぱい_1: 0.65
+        catalog_候補_酸っぱい_2: 0.8
+        catalog_候補_酸っぱい_3: 0.35
+    test:
+      morphs:
+        catalog_test_1: 1.0
+        catalog_test_2: 1.0
+        catalog_test_3: 1.0
+        catalog_test_4: 0.2
+  emotion_presets:
+    neutral: neutral_soft
+    happy: 候補_あたたかい笑顔
+    sad: 候補_冷たい怒り
+    angry: 候補_いらだち
+    embarrassed: 候補_照れ笑い
+    surprised: 候補_あわてる
+  mmd_mapping:
+    expression_morphs:
+      neutral_warm: Fun
+      joy_full: Joy
+      fun_full: Fun
+      sorrow_full: Sorrow
+      angry_full: Angry
+      mouth_clench: くいしばる
+      shy_eye: はぅ
+      shy_mouth: むふふ
+      surprise_mouth: おちょぼ
+      soft_smile: 笑い
+      smile: 笑い
+      eye_smile: にこり
+      blush: 照れ
+      worried_brow: 困る
+      mouth_sad: 口角下げ
+      angry_brow: 怒り
+      surprised_eye: びっくり
+      catalog_test_1: はぅ
+      catalog_test_2: 横伸ばし
+      catalog_test_3: 照れ
+      catalog_test_4: 涙
+      catalog_候補_穏やか_1: Fun
+      catalog_候補_真面目_1: 真面目
+      catalog_候補_真面目_2: ムッ
+      catalog_候補_疑い_1: じと目
+      catalog_候補_疑い_2: ドヤッ
+      catalog_候補_やさしい_1: Fun
+      catalog_候補_やさしい_2: 目尻_上げ
+      catalog_候補_あたたかい笑顔_1: Joy
+      catalog_候補_きらきら笑顔_1: Fun
+      catalog_候補_きらきら笑顔_2: きらきら目
+      catalog_候補_左ウィンク_1: ウィンク3
+      catalog_候補_左ウィンク_2: 笑い口
+      catalog_候補_右ウィンク_1: ウィンク3右
+      catalog_候補_右ウィンク_2: 笑い口
+      catalog_候補_好意_1: ハート目
+      catalog_候補_好意_2: むふふ
+      catalog_候補_心配_1: Sorrow
+      catalog_候補_心配_2: 口角下げ
+      catalog_候補_涙ぐむ_1: Sorrow
+      catalog_候補_涙ぐむ_2: 口角下げ
+      catalog_候補_涙ぐむ_3: 涙
+      catalog_候補_絶望_1: 絶望
+      catalog_候補_絶望_2: ハイライト消
+      catalog_候補_絶望_3: 口角下げ
+      catalog_候補_沈んだ顔_1: Sorrow
+      catalog_候補_沈んだ顔_2: 口角下げ
+      catalog_候補_強い怒り_1: Angry
+      catalog_候補_強い怒り_2: くいしばる
+      catalog_候補_いらだち_1: 怒り
+      catalog_候補_いらだち_2: ムッ
+      catalog_候補_いらだち_3: ムカッ
+      catalog_候補_熱い怒り_1: Angry
+      catalog_候補_熱い怒り_2: 叫ぶ
+      catalog_候補_熱い怒り_3: ファイア目
+      catalog_候補_冷たい怒り_1: じと目
+      catalog_候補_冷たい怒り_2: 怒り
+      catalog_候補_冷たい怒り_3: ムッ_2
+      catalog_候補_冷たい怒り_4: ハイライト消
+      catalog_候補_はにかみ_1: Fun
+      catalog_候補_はにかみ_2: 困る
+      catalog_候補_はにかみ_3: むふふ
+      catalog_候補_はにかみ_4: 照れ
+      catalog_候補_あわてる_1: びっくり
+      catalog_候補_あわてる_2: おちょぼ
+      catalog_候補_あわてる_3: 汗
+      catalog_候補_照れ笑い_1: Joy
+      catalog_候補_照れ笑い_2: 照れ
+      catalog_候補_緊張_1: 困る２
+      catalog_候補_緊張_2: 横伸ばし
+      catalog_候補_緊張_3: 汗
+      catalog_候補_明るい驚き_1: びっくり
+      catalog_候補_明るい驚き_2: おちょぼ
+      catalog_候補_明るい驚き_3: ハイライト拡大
+      catalog_候補_呆然_1: びっくり
+      catalog_候補_呆然_2: 瞳小
+      catalog_候補_呆然_3: ▲
+      catalog_候補_衝撃_1: 絶望
+      catalog_候補_衝撃_2: 瞳小
+      catalog_候補_衝撃_3: 叫ぶ
+      catalog_候補_衝撃_4: 青ざめ
+      catalog_候補_混乱_1: ぐるぐる目
+      catalog_候補_混乱_2: がたがた
+      catalog_候補_混乱_3: 汗
+      catalog_候補_いたずら_1: じと目
+      catalog_候補_いたずら_2: にひひ
+      catalog_候補_いたずら_3: 左口角上げ
+      catalog_候補_からかい_1: ウィンク
+      catalog_候補_からかい_2: 煽り口
+      catalog_候補_感動_1: きらきら目
+      catalog_候補_感動_2: Fun
+      catalog_候補_感動_3: 涙
+      catalog_候補_困惑_1: ぐるぐる目
+      catalog_候補_困惑_2: 困る
+      catalog_候補_困惑_3: おちょぼ
+      catalog_候補_困惑_4: 汗
+      catalog_候補_打ちのめされる_1: 絶望
+      catalog_候補_打ちのめされる_2: 口角下げ
+      catalog_候補_打ちのめされる_3: 青ざめ
+      catalog_候補_打ちのめされる_4: 涙
+      catalog_候補_酸っぱい_1: なごみ_2
+      catalog_候補_酸っぱい_2: おちょぼ
+      catalog_候補_酸っぱい_3: 困る
+    emotion_morphs:
+      happy: 笑い
+      sad: 困る
+      angry: 怒り
+      embarrassed: 照れ
+      surprised: びっくり
+    mouth_morphs:
+      a: あ
+      i: い
+      u: う
+      e: え
+      o: お
+    gaze_bones:
+      user: 両目
+      forward: 両目
+      left: 両目
+      right: 両目
+      up: 両目
+      down: 両目
+    pose_bones:
+      head: 頭
+      upper_body: 上半身
+    gesture_targets:
+      wave: 右腕
+      nod: 頭
+  thin_cloth_contact:
+    enabled: false
+    source_body_patterns:
+    - 手
+    target_body_patterns:
+    - Skirt_
+    maximum_correction_per_step: 0.006
+  emotion_preset_variants:
+    neutral:
+    - neutral_soft
+    happy:
+    - gentle_smile
+    - 候補_やさしい
+    - 候補_あたたかい笑顔
+    sad:
+    - sad_soft
+    - 候補_心配
+    - 候補_沈んだ顔
+    - 候補_冷たい怒り
+    angry:
+    - angry_soft
+    - 候補_強い怒り
+    - 候補_いらだち
+    embarrassed:
+    - embarrassed_soft
+    - test
+    - 候補_はにかみ
+    - 候補_照れ笑い
+    surprised:
+    - surprised_soft
+    - 候補_明るい驚き
+    - 候補_呆然
+    - 候補_あわてる

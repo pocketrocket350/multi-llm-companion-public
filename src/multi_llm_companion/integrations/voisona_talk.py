@@ -37,6 +37,10 @@ class _PreparedStreamSegment:
     request_uuid: str
 
 
+class _VoiceSelectionError(ValueError):
+    """ボイス選択の失敗を、固定の案内だけで画面へ渡す。"""
+
+
 class VoiSonaTalkVoiceOutput(VoiceOutputPort):
     """VoiSona TalkのWAVを取得し、アプリ管理の時計で再生する。"""
 
@@ -68,7 +72,7 @@ class VoiSonaTalkVoiceOutput(VoiceOutputPort):
         self._base_url = base_url.rstrip("/")
         self._username = username
         self._password = password
-        self._voice_name = voice_name
+        self._voice_name = voice_name.strip()
         self._language = language
         self._client = httpx.Client(
             auth=httpx.BasicAuth(username, password),
@@ -120,6 +124,8 @@ class VoiSonaTalkVoiceOutput(VoiceOutputPort):
     def status_text(self) -> str:
         if not self.is_available:
             return "環境変数未設定"
+        if not self._voice_name:
+            return "ボイス名未設定（音声ガイドで設定してください）"
         if self._last_error:
             return "エラー"
         expression = (
@@ -303,11 +309,13 @@ class VoiSonaTalkVoiceOutput(VoiceOutputPort):
                 completed_workers.get()
             if not stop_event.is_set():
                 self._put_stream_output(output_queue, None, stop_event)
-        except (httpx.HTTPError, OSError, ValueError, TypeError, KeyError):
+        except (httpx.HTTPError, OSError, ValueError, TypeError, KeyError) as exc:
             with self._lock:
                 if generation == self._stream_generation:
                     self._last_error = (
-                        "VoiSona Talkへ先読み音声を依頼できませんでした。設定を確認してください。"
+                        str(exc)
+                        if isinstance(exc, _VoiceSelectionError)
+                        else "VoiSona Talkへ先読み音声を依頼できませんでした。設定を確認してください。"
                     )
             stop_event.set()
 
@@ -665,7 +673,7 @@ class VoiSonaTalkVoiceOutput(VoiceOutputPort):
                 daemon=True,
                 name="voisona-playback-monitor",
             ).start()
-        except (httpx.HTTPError, OSError, ValueError, TypeError, KeyError):
+        except (httpx.HTTPError, OSError, ValueError, TypeError, KeyError) as exc:
             if temp_dir is not None:
                 temp_dir.cleanup()
             with self._lock:
@@ -676,7 +684,9 @@ class VoiSonaTalkVoiceOutput(VoiceOutputPort):
                 self._playback_started = False
                 self._pending_text = ""
                 self._last_error = (
-                    "VoiSona Talkへ音声を依頼できませんでした。起動状態、REST API設定、"
+                    str(exc)
+                    if isinstance(exc, _VoiceSelectionError)
+                    else "VoiSona Talkへ音声を依頼できませんでした。起動状態、REST API設定、"
                     "ユーザー名、API用パスワードを確認してください。"
                 )
 
@@ -940,15 +950,27 @@ class VoiSonaTalkVoiceOutput(VoiceOutputPort):
         self._delete_synthesis(request_uuid)
 
     def _resolve_voice(self) -> tuple[str, str]:
+        if not self._voice_name:
+            raise _VoiceSelectionError(
+                "VoiSona Talkのボイス名が未設定です。音声ガイドに従ってボイス名を設定し、"
+                "アプリを再起動してください。"
+            )
         response = self._client.get(f"{self._base_url}/voices")
         response.raise_for_status()
         voices = self._voice_items(response.json())
         if not voices:
-            raise ValueError("voice not found")
+            raise _VoiceSelectionError(
+                "VoiSona Talkで利用できるボイスがありません。ボイスの導入とAPI設定を確認してください。"
+            )
         selected = next(
             (item for item in voices if str(item.get("voice_name", "")) == self._voice_name),
-            voices[0],
+            None,
         )
+        if selected is None:
+            raise _VoiceSelectionError(
+                "VoiSona Talkに指定したボイス名が見つかりません。音声ガイドで利用可能な名前を"
+                "確認し、設定後にアプリを再起動してください。別のボイスは使用しません。"
+            )
         name = str(selected.get("voice_name", "")).strip()
         if not name:
             raise ValueError("invalid voice")

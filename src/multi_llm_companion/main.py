@@ -29,15 +29,19 @@ def main() -> int:
         QMessageBox.critical(
             None,
             "起動できません",
-            f"{exc}\n\n初回は setup_windows.bat を実行してください。",
+            f"{exc}\n\n設定を編集した場合は、直前の変更を戻してください。\n"
+            "詳しい手順は docs/backup_and_recovery_ja.md を開いてください。\n"
+            "初回セットアップが未完了の場合だけ setup_windows.bat を実行してください。",
         )
         return 1
-    except Exception:
+    except Exception as exc:
         app = app or QApplication(sys.argv)
         QMessageBox.critical(
             None,
             "起動できません",
-            "予期しない起動エラーが発生しました。test.batを実行してください。",
+            f"設定の読み込み中に予期しないエラーが発生しました（{type(exc).__name__}）。\n"
+            "run_debug.bat で起動し直してください。\n"
+            "解決しない場合は、この表示を控えて報告してください。",
         )
         return 1
 
@@ -52,14 +56,18 @@ def main() -> int:
         QMessageBox.critical(
             None,
             "起動できません",
-            f"{exc}\n\n初回は setup_windows.bat を実行してください。",
+            f"{exc}\n\n設定と素材の配置を確認してください。\n"
+            "詳しい手順は docs/backup_and_recovery_ja.md を開いてください。\n"
+            "調査用の画面を表示するには run_debug.bat で起動し直してください。",
         )
         return 1
-    except Exception:
+    except Exception as exc:
         QMessageBox.critical(
             None,
             "起動できません",
-            "予期しない起動エラーが発生しました。test.batを実行してください。",
+            f"会話機能の準備中に予期しないエラーが発生しました（{type(exc).__name__}）。\n"
+            "run_debug.bat で起動し直してください。\n"
+            "解決しない場合は、この表示を控えて報告してください。",
         )
         return 1
 
@@ -69,12 +77,14 @@ def main() -> int:
         backend.close()
         QMessageBox.critical(None, "起動できません", str(exc))
         return 1
-    except Exception:
+    except Exception as exc:
         backend.close()
         QMessageBox.critical(
             None,
             "起動できません",
-            "画面の準備中に予期しないエラーが発生しました。test.batを実行してください。",
+            f"画面の準備中に予期しないエラーが発生しました（{type(exc).__name__}）。\n"
+            "run_debug.bat で起動し直してください。\n"
+            "解決しない場合は、この表示を控えて報告してください。",
         )
         return 1
     window.show()

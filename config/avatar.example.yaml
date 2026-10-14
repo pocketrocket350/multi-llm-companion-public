@@ -1,25 +1,26 @@
-# オリジナルの女の子風アバター表示です。既存キャラクターの再現には使わないでください。
+# 初期Mockのオリジナル2Dアバター見本です。
+# 正規PMXを使う採用構成はavatar.reference.example.yamlと導入ガイドを参照してください。
 display_name: 紬
 hair_color: "#684765"
 outfit_color: "#b87aa4"
 accent_color: "#d99ac1"
 
-# 第10段階の3Dアバター接続基盤です。初期状態では2D表示だけを使います。
+# 初期状態では2D表示だけを使います。
 # mock は外部通信や3Dモデル読込を行わず、将来の3D命令だけを確認する方式です。
 # PMXを表示する場合は provider を pmx_preview にし、モデルを local/models/mmd 内へ置きます。
 three_d:
   enabled: false
   provider: mock
   model_path: ""
-  # 第33段階: 外部VMDはカタログへ登録し、識別名で選びます。
+  # 外部VMDはカタログへ登録し、識別名で選びます。
   # ファイルを直接指定するvmd_pathは安全確認を通らないため使用できません。
   vmd_catalog_path: local/vmd_catalog.yaml
-  # 例: nod_small。空欄ならVMDを読み込みません。
-  vmd_motion_id: ""
+  # 初回セットアップで配置する採用済み待機です。3D無効の間は読み込みません。
+  vmd_motion_id: sample_otokam_048
   # trueにすると、カタログ内の有効なtalk・reaction・danceを自動登録します。
   # 一度有効にすれば、カタログへメタデータを追加するだけで候補を増やせます。
-  motion_library_enabled: false
-  # 第34段階: 会話中に選択できるVMD識別名です。権利・PMX互換性を起動時に確認します。
+  motion_library_enabled: true
+  # 会話中に選択できるVMD識別名です。権利・PMX互換性を起動時に確認します。
   # 未登録なら、waveとnodは従来の軽量なボーン動作へ安全に戻ります。
   gesture_motion_ids: []
   gesture_policy:
@@ -34,16 +35,14 @@ three_d:
     max_large_per_minute: 2
     # 同じVMDを繰り返さないため、原則として直近何件を候補から外すかです。
     recent_motion_count: 5
-  # legacy_pmx_preview は現在の確認用表示です。
-  # mmd_runtime は第24段階で用意した本格MMD描画用の入口です。
-  # 現時点では本格MMD描画は未実装のため、選んでも簡易表示へ安全に戻ります。
+  # 描画方式の接続名です。実PMX画面はDense描画と同梱UMT物理を使います。
   renderer: legacy_pmx_preview
   fallback_renderer: legacy_pmx_preview
   # low=輪郭線・平滑化なし、standard=標準、high=高品質です。
   # MSAAを利用できないPCでは、標準は1.5倍、高品質は2倍の内部画面をGPUで縮小します。
   # 大きすぎる画面ではGPUメモリを守るため、自動的に安全な倍率へ下がります。
   render_quality: standard
-  # 第36段階: 表情の意味と、モデル固有のPMX名を分けます。
+  # 表情の意味と、モデル固有のPMX名を分けます。
   # ここではキャラクター共通の表情と基準強度だけを書きます。
   expression_presets:
     neutral_soft:
@@ -77,7 +76,7 @@ three_d:
     embarrassed: embarrassed_soft
     surprised: surprised_soft
   # PMXモデルごとに、実際のモーフ名・ボーン名・動作名へ書き換えてください。
-  # 第17段階では、頂点形式の表情・口モーフをメッシュへ反映します。
+  # 頂点形式の表情・口モーフをメッシュへ反映します。
   # PMX変形順・IK制限・固定刻み衝突物理・VMD再生に対応します。
   mmd_mapping:
     # 左側はプリセット内の役割名、右側はPMX内に実在するモーフ名です。
@@ -91,6 +90,7 @@ three_d:
       mouth_sad: "口角下げ"
       angry_brow: "怒り"
       surprised_eye: "びっくり"
+      mouth_surprised: "お"
     # 旧設定との互換用です。新しく設定する場合は上のプリセット方式を使います。
     emotion_morphs: {}
     # モデルに「あ・い・う・え・お」の頂点モーフがある場合だけ設定します。
@@ -107,7 +107,7 @@ three_d:
       right: "両目"
       up: "両目"
       down: "両目"
-    # 第18段階では、うなずきに使う頭・上半身ボーンを設定します。
+    # うなずきに使う頭・上半身ボーンを設定します。
     pose_bones:
       head: "頭"
       upper_body: "上半身"
