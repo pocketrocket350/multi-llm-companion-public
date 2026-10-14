@@ -29,7 +29,9 @@ def main() -> int:
         QMessageBox.critical(
             None,
             "起動できません",
-            f"{exc}\n\n初回は setup_windows.bat を実行してください。",
+            f"{exc}\n\n設定を編集した場合は、直前の変更を戻してください。\n"
+            "詳しい手順は docs/backup_and_recovery_ja.md を開いてください。\n"
+            "初回セットアップが未完了の場合だけ setup_windows.bat を実行してください。",
         )
         return 1
     except Exception as exc:
@@ -54,7 +56,9 @@ def main() -> int:
         QMessageBox.critical(
             None,
             "起動できません",
-            f"{exc}\n\n初回は setup_windows.bat を実行してください。",
+            f"{exc}\n\n設定と素材の配置を確認してください。\n"
+            "詳しい手順は docs/backup_and_recovery_ja.md を開いてください。\n"
+            "調査用の画面を表示するには run_debug.bat で起動し直してください。",
         )
         return 1
     except Exception as exc:

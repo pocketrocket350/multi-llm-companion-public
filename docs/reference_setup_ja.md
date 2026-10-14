@@ -6,6 +6,8 @@
 
 同梱の `config/avatar.reference.example.yaml` は、`雨衣_2025_0516.pmx` 向けの表情・口形・視線・動作設定です。モデル本体とテクスチャは含みません。
 
+画面の表示名は見本の「紬」です。変える場合は、下の手順でコピーした `local/avatar.reference.yaml` の `display_name` を編集します。会話の人格やボイスは別の設定です。
+
 1. アプリを終了します。`local/app.yaml` を同じ場所へコピーし、`app.before-reference.yaml` と名前を変えて控えにします。同名ファイルは上書きしません。
 2. PMXと付属テクスチャを、フォルダー構造を保って `local/models/mmd/` 内へ置きます。
 3. `config/avatar.reference.example.yaml` を `local` へコピーし、`avatar.reference.yaml` と名前を変えます。同名ファイルがあれば上書きせず中止します。既存の `avatar.yaml` は残します。

@@ -9,6 +9,6 @@
 
 BulletアーカイブのSHA256は、対象UMTコミットのCMake定義と一致する`fe2e369593b034c00a1245676edd8417a58c8030a94e061220f0c228ca61fe8f`。UnityMMDToolsの[Bullet 2.75通知](https://github.com/CandidumGames/UnityMMDTools/blob/d5680009a5940f1042ecb5a82ccd696dbfd0cd46/Third%20Party%20Notices.md#bullet-physics-sdk)とも利用版と著作権を照合した。
 
-既存DLLは、対象UMTコミットとBullet 2.75をローカルビルドし、Bulletの追加線形減衰しきい値に `tools/umt_native_unit_scaled_damping.patch` の2行変更を適用した記録を持つ。元ソフトの著作者は上記の作者であり、本プロジェクトの変更を上流の原本と扱わない。パッチも候補へ同梱する。既存DLLの出所・ビルド記録は `THIRD_PARTY_NOTICES.md` に保持する。
+既存DLLは、上記のUMTコミットとBullet 2.75へ、追加線形減衰しきい値を変える [同梱パッチ](../tools/umt_native_unit_scaled_damping.patch) の2行変更を適用し、ローカルビルドしたものです。元ソフトの著作者は上記の作者であり、本プロジェクトの変更を上流の原本と扱いません。
 
 このソース候補にPython、Qt/PySide6、Panda3D等のパッケージ本体は含めない。セットアップ時に取得するパッケージにはそれぞれのライセンスが適用される。将来バイナリ一式を再配布する場合は、実際に同梱する版の本文・NOTICEと必要条件を別途確認する。

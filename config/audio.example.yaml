@@ -35,7 +35,7 @@ voice_output:
   lip_sync_start_delay: 0.0
   # 音素時刻がない場合の文字間隔の比率です。WAV全体の長さへ自動調整されます。
   lip_sync_character_duration: 0.22
-  # 第43段階: 未設定またはfalseなら、第42段階までと同じ音声リクエストです。
+  # enabledがtrueのときだけ、感情に応じて話速と抑揚を調整します。
   expression:
     enabled: false
     # 感情から作った音声専用強度へ掛ける、話速と抑揚の安全な最大変化幅です。
