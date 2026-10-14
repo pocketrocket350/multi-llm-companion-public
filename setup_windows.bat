@@ -153,12 +153,15 @@ if not "%MOTIONS_RESULT%"=="0" echo %MSG_PRESS_CLOSE%
 if not "%MOTIONS_RESULT%"=="0" pause >nul
 if not "%MOTIONS_RESULT%"=="0" exit /b 1
 
+".venv\Scripts\python.exe" "scripts\create_windows_shortcut.py"
+if errorlevel 1 echo [注意] ショートカットを作れませんでした。run.bat を使用してください。
+
 echo.
 echo ================================================
 echo [完了] セットアップが正常に終わりました。
 echo ================================================
 echo 1. Mock を使えば、設定を変更せずに動作確認できます。
-echo 2. run.bat を実行してアプリを起動してください。
+echo 2. 「起動」ショートカットを開いてください。診断時は run_debug.bat を使います。
 echo 3. APIキーは Windows の環境変数へ設定してください。
 echo    .env にはAPIキーを書かないでください。
 echo 4. 音声機能の準備は docs\audio_ja.md を参照してください。

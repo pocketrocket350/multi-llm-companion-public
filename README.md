@@ -10,7 +10,7 @@ Windows 11、Python 3.12、初回セットアップ用のインターネット�
 
 1. ソースZIPを新しいフォルダーへ展開します。
 2. `setup_windows.bat` を開き、「セットアップが正常に終わりました」を待ちます。
-3. `run.bat` を開き、入力欄に文章を書いてEnterで送信します。
+3. **起動** ショートカットを開き、入力欄に文章を書いてEnterで送信します。
 
 詳しくは [はじめての起動](docs/beginner_guide_ja.md)。音声とMMDを使う場合は [雨衣の音声・MMDを設定する](docs/reference_setup_ja.md) へ進んでください。
 

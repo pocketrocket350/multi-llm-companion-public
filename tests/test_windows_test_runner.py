@@ -6,7 +6,8 @@ import pytest
 
 
 @pytest.mark.parametrize(
-    "filename", ["test.bat", "run_phase9_acceptance.bat", "setup_windows.bat", "run.bat"]
+    "filename",
+    ["test.bat", "run_phase9_acceptance.bat", "setup_windows.bat", "run.bat", "run_debug.bat"],
 )
 def test_windows_batch_uses_consistent_line_endings(filename: str) -> None:
     content = (Path(__file__).resolve().parents[1] / filename).read_bytes()

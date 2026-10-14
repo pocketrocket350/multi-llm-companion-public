@@ -9,7 +9,7 @@
 3. [権利記録の見本](../config/vmd_license.example.yaml)を `local/licenses/` へ別名でコピーし、作者・配布元・規約・取得日・用途・改変・クレジット・再配布可否を記入します。確認できた場合だけ `usage_confirmed: true` にします。
 4. `local/vmd_catalog.yaml` の `motions` へ、重複しない識別名で登録します。カタログがない場合だけ [見本](../config/vmd_catalog.example.yaml)をコピーし、既存の内容へ上書きしません。
 5. 待機に使う場合はアバター設定の `three_d.vmd_motion_id` に識別名を指定します。会話候補をカタログから選ぶ場合は `three_d.motion_library_enabled: true` にします。
-6. `run.bat` で起動し、**設定 → 表示 → モーションを管理** から読込み状態と見た目を確認します。
+6. **起動** ショートカットで起動し、**設定 → 表示 → モーションを管理** から読込み状態と見た目を確認します。
 
 ## カタログ例
 
