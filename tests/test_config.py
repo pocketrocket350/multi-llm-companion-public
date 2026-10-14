@@ -78,6 +78,40 @@ def test_mock_starts_without_api_environment_variables(tmp_path: Path) -> None:
     assert runtime.database_path == (tmp_path / "data" / "conversations.db")
 
 
+@pytest.mark.parametrize("filename", ["avatar.example.yaml", "avatar.reference.example.yaml"])
+def test_avatar_examples_resolve_every_expression_role(filename: str) -> None:
+    path = Path(__file__).resolve().parents[1] / "config" / filename
+    avatar = AvatarConfig.model_validate(yaml.safe_load(path.read_text(encoding="utf-8")))
+    settings = avatar.three_d
+    assert not settings.enabled
+    assert settings.model_path == ""
+    presets = settings.expression_presets
+    assert set(settings.emotion_presets.values()) <= set(presets)
+    for variants in settings.emotion_preset_variants.values():
+        assert variants and set(variants) <= set(presets)
+    for preset in presets.values():
+        assert set(preset.morphs) <= set(settings.mmd_mapping.expression_morphs)
+
+
+def test_reference_profile_loads_from_separate_local_file(tmp_path: Path) -> None:
+    app_path = _write_settings(tmp_path)
+    source = Path(__file__).resolve().parents[1] / "config/avatar.reference.example.yaml"
+    target = tmp_path / "local/avatar.reference.yaml"
+    shutil.copyfile(source, target)
+    old = tmp_path / "local/avatar.yaml"
+    old.write_text("display_name: 保持する設定\n", encoding="utf-8")
+    before = old.read_bytes()
+    with app_path.open("a", encoding="utf-8") as stream:
+        stream.write("\navatar_config_path: local/avatar.reference.yaml\n")
+    runtime = load_runtime_config(tmp_path)
+    assert runtime.avatar.three_d.provider == "pmx_preview"
+    assert not runtime.avatar.three_d.enabled
+    assert len(runtime.avatar.three_d.expression_presets) == 38
+    assert len(runtime.avatar.three_d.emotion_preset_variants) == 6
+    assert len(runtime.avatar.three_d.mmd_mapping.expression_morphs) == 103
+    assert old.read_bytes() == before
+
+
 def test_openai_compatible_reports_missing_environment_without_secret(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

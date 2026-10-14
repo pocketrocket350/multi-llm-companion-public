@@ -311,6 +311,7 @@ def test_local_voice_fault_stops_and_next_mock_synthesis_recovers(tmp_path, faul
         base_url="http://127.0.0.1:32766/api/talk/v1",
         username="fixture",
         password="fixture",
+        voice_name="fixture",
         transport=httpx.MockTransport(handler),
         wav_player=player,
         temp_root=tmp_path,

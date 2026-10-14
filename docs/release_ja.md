@@ -1,19 +1,19 @@
 # v1.0候補のダウンロードと導入
 
-修正版候補は **v1.0-rc.2（VMD同梱・非公開）** です。旧v1.0-rc.1の公開用リポジトリはPrivateへ戻しており、修正版のRelease公開・外部配布は行いません。Windows 11とPython 3.12を使います。アプリ内部のパッケージ版は既存の0.23.0を維持しています。実行ファイルだけで動くインストーラーではなく、初回セットアップでPythonパッケージを取得します。
+修正版候補は **v1.0-rc.3（採用設定・導入手順の是正、非公開）** です。旧v1.0-rc.1の公開用リポジトリはPrivateへ戻しており、修正版のRelease公開・外部配布は行いません。Windows 11とPython 3.12を使います。アプリ内部のパッケージ版は既存の0.23.0を維持しています。実行ファイルだけで動くインストーラーではなく、初回セットアップでPythonパッケージを取得します。
 
 現在は手元の修正版候補ZIPを使います。将来の再公開には別の承認が必要です。[同梱VMD26件の出典・原文規約・改変内容](bundled_motions_ja.md)を添えます。雨衣PMX、画像、音声、VoiSona Talk本体・ボイス、音声認識モデルは同梱しません。初期状態は汎用2Dアバターと、APIキー不要のMock文字会話です。
 
 ## ダウンロードして起動する
 
-1. 手元の修正版候補ファイルを確認します。将来再公開した場合は、承認されたReleaseページの **Assets** から取得します。`multi-llm-companion-v1.0-rc.2-source.zip` と `SHA256SUMS.txt` をダウンロードします。初めて使う場合は、この名前のZIPを選んでください。
+1. 手元の修正版候補ファイルを確認します。将来再公開した場合は、承認されたReleaseページの **Assets** から取得します。`multi-llm-companion-v1.0-rc.3-source.zip` と `SHA256SUMS.txt` をダウンロードします。初めて使う場合は、この名前のZIPを選んでください。
 2. ZIPを右クリックして **すべて展開** を選びます。自分の「ドキュメント」など、書き込みできる新しいフォルダーへ展開します。既存のアプリフォルダーへ重ねて展開しません。ZIPの中を直接開いた状態では実行しません。
-3. 展開先の `multi-llm-companion-v1.0-rc.2` フォルダーを開きます。`README.md`、`setup_windows.bat`、`run.bat` が見えることを確認します。
+3. 展開先の `multi-llm-companion-v1.0-rc.3` フォルダーを開きます。`README.md`、`setup_windows.bat`、`run.bat` が見えることを確認します。
 4. Python 3.12がなければ、[Python公式のWindows配布一覧](https://www.python.org/downloads/windows/)から3.12系を導入します。インストーラーの **Add python.exe to PATH** を有効にします。初回セットアップにはインターネット接続が必要です。
 5. `setup_windows.bat` をダブルクリックし、**セットアップが正常に終わりました** と出るまで待ちます。エラーが出たらそこで止め、下の復旧案内へ進みます。
 6. `run.bat` をダブルクリックします。入力欄へ「こんにちは」と書き、Enterまたは三角矢印の **送信** を押します。Mockの回答が出れば、文字会話の起動は成功です。Mockは実LLMの会話品質を評価する機能ではありません。
 7. 右上の歯車 **設定** → **診断情報** を開き、プロバイダーがMockであることを確認します。最初は音声・マイク・3Dが無効です。
-8. 回答終了後、右上の **×** で閉じます。`run.bat` で再起動し、左上の時計 **履歴** から先の会話を選びます。本文が戻れば、保存と再開は成功です。
+8. 回答終了後、右上の **×** で閉じます。`run.bat` で再起動し、左上の三本バー **履歴** から先の会話を選びます。本文が戻れば、保存と再開は成功です。
 
 画面が開かない、回答が出ない、履歴が戻らない場合は失敗です。繰り返し送信せず、エラーと操作番号を控えて終了してください。[初心者ガイド](beginner_guide_ja.md)と[バックアップ・復旧](backup_and_recovery_ja.md)に対処手順があります。以前の版を利用していた場合は、元フォルダーの `run.bat` から戻れます。
 
@@ -21,19 +21,19 @@ Windowsがダウンロードしたファイルの確認を求める場合は、�
 
 ## ハッシュと検査結果を確認する
 
-Assetsには `FILE_MANIFEST.json`（ファイル一覧とSHA256）、`VERIFICATION.json`（検査範囲と結果）、`RELEASE_NOTES_ja.md` もあります。これらは秘密値、会話、生ログを含まない公開用の集計です。
+候補の `assets` フォルダーには6ファイルがあります：ソースZIP、`SHA256SUMS.txt`、`FILE_MANIFEST.json`（ファイル一覧とSHA256）、`VERIFICATION.json`（検査範囲と結果）、`AUDIT.json`（混入・構文・リンク検査）、`REVIEW_NOTES_ja.md`（非公開修正版の説明）。現在GitHub Releaseへ添付しているものではありません。将来の再公開を承認した場合に配布する集計で、秘密値・会話・生ログは含みません。旧RC1の5添付と名前・件数を区別します。
 
 ZIPの取り違えやダウンロード破損を確かめるには、ZIPがあるフォルダーの空白部分を右クリックし、**ターミナルで開く** を選びます。PowerShellへ次を貼り付けます。
 
 ```powershell
-Get-FileHash -Algorithm SHA256 -LiteralPath '.\multi-llm-companion-v1.0-rc.2-source.zip'
+Get-FileHash -Algorithm SHA256 -LiteralPath '.\multi-llm-companion-v1.0-rc.3-source.zip'
 ```
 
 表示された `Hash` が `SHA256SUMS.txt` の同じZIP名の値と、大文字・小文字を除いて一致すれば成功です。不一致ならZIPを実行せず、正しいReleaseから取り直してください。ハッシュは破損・取り違えの確認であり、すべての安全性や全環境の動作保証ではありません。
 
 ## 雨衣の音声・MMDで利用する
 
-Mock起動後、[基準構成の導入](v1_candidate_ja.md#2-現在採用する基準完全構成)、[LLM設定](providers_ja.md)、[音声](audio_ja.md)、[アバター](avatar_ja.md)、[VMD登録](vmd_catalog_ja.md)へ進んでください。同梱VMD26件はセットアップで配置済みです。未同梱のPMX・画像・音声・認識モデル・VoiSona等は利用者自身が正規配布元から取得し、[利用条件と再配布条件](rights_and_credits_ja.md)を別々に確認します。APIキーはWindows環境変数から渡します。実APIを使う会話にはサービス料金が発生し得ます。
+Mock起動後、まず [採用構成を順番に導入する手順](reference_setup_ja.md) へ進みます。表情設定・正しいボイス名・能動会話・検索/画像許可・停止復帰を説明しています。詳細は [基準構成の導入](v1_candidate_ja.md#2-現在採用する基準完全構成)、[LLM設定](providers_ja.md)、[音声](audio_ja.md)、[アバター](avatar_ja.md)、[VMD登録](vmd_catalog_ja.md)へ進んでください。同梱VMD26件はセットアップで配置済みです。未同梱のPMX・画像・音声・認識モデル・VoiSona等は利用者自身が正規配布元から取得し、[利用条件と再配布条件](rights_and_credits_ja.md)を別々に確認します。APIキーはWindows環境変数から渡します。実APIを使う会話にはサービス料金が発生し得ます。
 
 ## 検証範囲と既知の制限
 

@@ -21,6 +21,7 @@ voice_output:
   # 値そのものではなく、Windows環境変数の名前だけを書きます。
   username_env: VOISONA_TALK_USERNAME
   password_env: VOISONA_TALK_PASSWORD
+  # 空欄・不一致は合成せず停止します。音声ガイドでAPI上の名前を確認します。
   voice_name_env: VOISONA_TALK_VOICE_NAME
   language: ja_JP
   timeout: 15

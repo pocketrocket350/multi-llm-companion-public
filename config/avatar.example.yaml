@@ -1,4 +1,5 @@
-# オリジナルの女の子風アバター表示です。既存キャラクターの再現には使わないでください。
+# 初期Mockのオリジナル2Dアバター見本です。
+# 正規PMXを使う採用構成はavatar.reference.example.yamlと導入ガイドを参照してください。
 display_name: 紬
 hair_color: "#684765"
 outfit_color: "#b87aa4"
@@ -34,9 +35,7 @@ three_d:
     max_large_per_minute: 2
     # 同じVMDを繰り返さないため、原則として直近何件を候補から外すかです。
     recent_motion_count: 5
-  # legacy_pmx_preview は現在の確認用表示です。
-  # mmd_runtime は第24段階で用意した本格MMD描画用の入口です。
-  # 現時点では本格MMD描画は未実装のため、選んでも簡易表示へ安全に戻ります。
+  # 描画方式の接続名です。実PMX画面はDense描画と同梱UMT物理を使います。
   renderer: legacy_pmx_preview
   fallback_renderer: legacy_pmx_preview
   # low=輪郭線・平滑化なし、standard=標準、high=高品質です。
@@ -91,6 +90,7 @@ three_d:
       mouth_sad: "口角下げ"
       angry_brow: "怒り"
       surprised_eye: "びっくり"
+      mouth_surprised: "お"
     # 旧設定との互換用です。新しく設定する場合は上のプリセット方式を使います。
     emotion_morphs: {}
     # モデルに「あ・い・う・え・お」の頂点モーフがある場合だけ設定します。

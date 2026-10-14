@@ -51,5 +51,5 @@ data/**/*.sqlite3-*
 .DS_Store
 Thumbs.db
 
-# 権利本文付きの既存DLLと許可リスト選別済みの同梱VMDを保持する。
+# 権利本文付きの既存DLLを保持する。
 !src/multi_llm_companion/ui/native/UMTNativePlugin.dll

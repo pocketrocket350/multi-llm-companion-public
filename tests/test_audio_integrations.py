@@ -145,6 +145,7 @@ def test_voisona_requests_file_synthesis_without_exposing_password(tmp_path: Pat
     secret = "do-not-print-this-password"
     player = FakeWavPlayer(finish_on_play=True)
     output = VoiSonaTalkVoiceOutput(
+        voice_name="original-voice",
         base_url="http://127.0.0.1:32766/api/talk/v1",
         username="user@example.invalid",
         password=secret,
@@ -208,6 +209,7 @@ def test_voisona_stream_synthesizes_sentences_in_order_and_finishes(
         return httpx.Response(200, json={"state": "succeeded"})
 
     output = VoiSonaTalkVoiceOutput(
+        voice_name="original-voice",
         base_url="http://127.0.0.1:32766/api/talk/v1",
         username="user",
         password="secret",
@@ -274,6 +276,7 @@ def test_voisona_starts_first_wav_without_waiting_for_next_sentence(
         return httpx.Response(200, json={"state": "succeeded"})
 
     output = VoiSonaTalkVoiceOutput(
+        voice_name="original-voice",
         base_url="http://127.0.0.1:32766/api/talk/v1",
         username="user",
         password="secret",
@@ -314,6 +317,7 @@ def test_voisona_stream_drains_completed_sentences_during_playback(
     tmp_path: Path,
 ) -> None:
     output = VoiSonaTalkVoiceOutput(
+        voice_name="original-voice",
         base_url="http://127.0.0.1:32766/api/talk/v1",
         username="user",
         password="secret",
@@ -367,6 +371,7 @@ def test_voisona_terminal_failure_stops_without_waiting_for_timeout(
 
     player = FakeWavPlayer(finish_on_play=True)
     output = VoiSonaTalkVoiceOutput(
+        voice_name="original-voice",
         base_url="http://127.0.0.1:32766/api/talk/v1",
         username="user",
         password="secret",
@@ -428,6 +433,7 @@ def test_voisona_failed_prefetch_stops_current_wav(tmp_path: Path) -> None:
         return httpx.Response(200, json={"state": "succeeded"})
 
     output = VoiSonaTalkVoiceOutput(
+        voice_name="original-voice",
         base_url="http://127.0.0.1:32766/api/talk/v1",
         username="user",
         password="secret",
@@ -462,6 +468,7 @@ def test_voisona_expression_disabled_keeps_legacy_request_payload(tmp_path: Path
         return httpx.Response(200, json={"uuid": "test-uuid"})
 
     output = VoiSonaTalkVoiceOutput(
+        voice_name="original-voice",
         base_url="http://127.0.0.1:32766/api/talk/v1",
         username="user",
         password="secret",
@@ -497,6 +504,7 @@ def test_legacy_speak_never_adds_expression_parameters_when_feature_is_enabled(
         return httpx.Response(200, json={"uuid": "test-uuid"})
 
     output = VoiSonaTalkVoiceOutput(
+        voice_name="original-voice",
         base_url="http://127.0.0.1:32766/api/talk/v1",
         username="user",
         password="secret",
@@ -540,6 +548,7 @@ def test_voisona_expression_uses_only_bounded_voice_independent_parameters(
         return httpx.Response(200, json={"uuid": "test-uuid"})
 
     output = VoiSonaTalkVoiceOutput(
+        voice_name="original-voice",
         base_url="http://127.0.0.1:32766/api/talk/v1",
         username="user",
         password="secret",
@@ -571,6 +580,7 @@ def test_voisona_expression_uses_only_bounded_voice_independent_parameters(
 
 def test_voisona_neutral_or_unsupported_expression_adds_no_parameters(tmp_path: Path) -> None:
     output = VoiSonaTalkVoiceOutput(
+        voice_name="original-voice",
         base_url="http://127.0.0.1:32766/api/talk/v1",
         username="user",
         password="secret",
@@ -603,6 +613,7 @@ def test_voisona_stop_rejects_wav_from_an_old_synthesis_generation(tmp_path: Pat
 
     player = FakeWavPlayer()
     output = VoiSonaTalkVoiceOutput(
+        voice_name="original-voice",
         base_url="http://127.0.0.1:32766/api/talk/v1",
         username="user",
         password="secret",
@@ -800,6 +811,7 @@ def test_voisona_prefers_returned_phoneme_timings_during_managed_playback(
 
     player = FakeWavPlayer()
     output = VoiSonaTalkVoiceOutput(
+        voice_name="original-voice",
         base_url="http://127.0.0.1:32766/api/talk/v1",
         username="user",
         password="secret",
@@ -846,6 +858,7 @@ def test_voisona_lip_sync_uses_managed_wav_position_and_closes_at_end(
 
     player = FakeWavPlayer()
     output = VoiSonaTalkVoiceOutput(
+        voice_name="original-voice",
         base_url="http://127.0.0.1:32766/api/talk/v1",
         username="user",
         password="secret",
@@ -881,6 +894,7 @@ def test_voisona_stop_records_when_an_active_wav_player_has_stopped(monkeypatch)
         lambda _source, event, **_fields: records.append(event),
     )
     output = VoiSonaTalkVoiceOutput(
+        voice_name="original-voice",
         base_url="http://127.0.0.1:32766/api/talk/v1",
         username="user",
         password="secret",
@@ -904,6 +918,7 @@ def test_voisona_lip_sync_uses_wav_duration_when_api_omits_duration(tmp_path: Pa
 
     player = FakeWavPlayer()
     output = VoiSonaTalkVoiceOutput(
+        voice_name="original-voice",
         base_url="http://127.0.0.1:32766/api/talk/v1",
         username="user",
         password="secret",
@@ -942,6 +957,7 @@ def test_voisona_preroll_does_not_advance_lip_sync_or_shorten_schedule(
 
     player = FakeWavPlayer(lead_in_seconds=0.1)
     output = VoiSonaTalkVoiceOutput(
+        voice_name="original-voice",
         base_url="http://127.0.0.1:32766/api/talk/v1",
         username="user",
         password="secret",
@@ -978,6 +994,7 @@ def test_voisona_missing_wav_stops_safely_and_reports_japanese(tmp_path: Path) -
 
     player = FakeWavPlayer()
     output = VoiSonaTalkVoiceOutput(
+        voice_name="original-voice",
         base_url="http://127.0.0.1:32766/api/talk/v1",
         username="user",
         password="secret",
@@ -1007,6 +1024,7 @@ def test_voisona_connection_error_is_safe_japanese() -> None:
         raise httpx.ConnectError("secret-connection-details")
 
     output = VoiSonaTalkVoiceOutput(
+        voice_name="original-voice",
         base_url="http://127.0.0.1:32766/api/talk/v1",
         username="user",
         password="secret",
@@ -1021,6 +1039,7 @@ def test_voisona_connection_error_is_safe_japanese() -> None:
 
 def test_voisona_cleanup_reraises_unexpected_closed_client_error(tmp_path: Path) -> None:
     output = VoiSonaTalkVoiceOutput(
+        voice_name="original-voice",
         base_url="http://127.0.0.1:32766/api/talk/v1",
         username="user",
         password="secret",
