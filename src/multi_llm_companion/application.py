@@ -6,6 +6,7 @@ import re
 from collections.abc import Callable
 from dataclasses import replace
 from pathlib import Path
+from threading import Event
 
 from multi_llm_companion.config import (
     AvatarConfig,
@@ -25,6 +26,7 @@ from multi_llm_companion.domain import (
     AssistantResponse,
     ConversationState,
     EmotionState,
+    ExpressionChannel,
     ExpressionPolicy,
     MemoryCategory,
     MemoryEntry,
@@ -301,34 +303,55 @@ class ApplicationBackend:
 
         return self._start_voice_output(text, reject_invalidated_stream=False)
 
-    def _start_voice_output(self, text: str, *, reject_invalidated_stream: bool) -> str | None:
+    def _start_voice_output(
+        self,
+        text: str,
+        *,
+        reject_invalidated_stream: bool,
+        cancel_event: Event | None = None,
+    ) -> str | None:
         voice_output = self._service.voice_output
-        response = self._service.last_response
         text = self._spoken_text(text)
         if reject_invalidated_stream and self._service._stream_was_invalidated:
             raise StreamTurnInvalidatedError()
-        state = self._service.last_emotion_state
         speak_with_expression = getattr(voice_output, "speak_with_expression", None)
-        if response is not None and state is not None and callable(speak_with_expression):
-            intent = self._expression_policy.normalize(response)
-            intent = self._expression_policy.apply_emotion_state(
-                intent,
-                state.emotion,
-                state.intensity,
-            )
-            if intent.outputs is not None:
-                speak_with_expression(text, intent.outputs.voice)
-            else:
-                voice_output.speak(text)
+        expression = self._voice_expression() if callable(speak_with_expression) else None
+        guarded_start = getattr(voice_output, "_speak_unless_cancelled", None)
+        if cancel_event is not None and callable(guarded_start):
+            guarded_start(text, expression, cancel_event)
+        elif cancel_event is not None and cancel_event.is_set():
+            return None
+        elif expression is not None:
+            speak_with_expression(text, expression)
         else:
             voice_output.speak(text)
         return voice_output.last_error
+
+    def _voice_expression(self) -> ExpressionChannel | None:
+        """確定済みの回答と感情から、音声専用の表現強度を得る。"""
+
+        response = self._service.last_response
+        state = self._service.last_emotion_state
+        if response is None or state is None:
+            return None
+        intent = self._expression_policy.normalize(response)
+        intent = self._expression_policy.apply_emotion_state(intent, state.emotion, state.intensity)
+        return intent.outputs.voice if intent.outputs is not None else None
+
+    def _update_stream_voice_expression(self) -> None:
+        update = getattr(self._service.voice_output, "_set_stream_expression", None)
+        if callable(update):
+            update(self._voice_expression())
 
     def start_stream_voice_output(self, text: str) -> str | None:
         """文単位の音声先読みを開始し、画面用エラーを返す。"""
 
         voice_output = self._service.voice_output
-        voice_output.start_stream(self._spoken_text(text))
+        start = getattr(voice_output, "_start_stream_with_expression", None)
+        if callable(start):
+            start(self._spoken_text(text), self._voice_expression())
+        else:
+            voice_output.start_stream(self._spoken_text(text))
         return voice_output.last_error
 
     def enqueue_stream_voice_output(self, text: str) -> str | None:
@@ -1171,6 +1194,9 @@ class ApplicationBackend:
 
     def close(self) -> None:
         self._service.close()
+        close_voice = getattr(self._service.voice_output, "close", None)
+        if callable(close_voice):
+            close_voice()
 
 
 def _system_prompt(runtime: RuntimeConfig) -> str:

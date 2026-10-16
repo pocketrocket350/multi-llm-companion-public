@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "multi-llm-companion"
-version = "1.0.0"
+version = "1.0.1"
 description = "複数のLLMを切り替えて利用できるWindows向けデスクトップ会話アプリ"
 readme = "README.md"
 requires-python = ">=3.12,<3.13"

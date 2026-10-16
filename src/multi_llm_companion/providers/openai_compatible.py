@@ -162,7 +162,7 @@ class OpenAICompatibleProvider(ChatProvider):
                     # JSONを返す接続先も、追加要求なしで従来通り検証する。
                     response.read()
                     data = response.json()
-                    if not isinstance(data, dict):
+                    if not isinstance(data, dict) or "error" in data:
                         raise ValueError("研究応答がオブジェクトではありません")
                     self._last_usage = TokenUsage.from_api(data.get("usage"))
                 else:
@@ -191,6 +191,7 @@ class OpenAICompatibleProvider(ChatProvider):
                     data = stream.completed()
             decision = _read_research_call(data)
             if decision is None:
+                _validate_finish_reason(data["choices"][0].get("finish_reason"))
                 raw = _extract_message_content(data)
                 if not raw.strip():
                     raise _EmptyProviderResponse("LLMから回答本文が返されませんでした。")
@@ -238,6 +239,8 @@ class OpenAICompatibleProvider(ChatProvider):
                 response = client.post(self._chat_completions_url, json=payload)
                 self._raise_for_status(response)
                 data = response.json()
+                if isinstance(data, dict) and "error" in data:
+                    raise ValueError("APIエラーが返されました")
             self._last_usage = TokenUsage.from_api(
                 data.get("usage") if isinstance(data, dict) else None
             )
@@ -255,6 +258,7 @@ class OpenAICompatibleProvider(ChatProvider):
                 )
                 self._last_error = str(error)
                 raise error
+            _validate_finish_reason(data["choices"][0].get("finish_reason"))
             parsed = parse_assistant_response(raw_text)
             self._last_raw_response = raw_text
             self._last_response = parsed
@@ -283,6 +287,8 @@ class OpenAICompatibleProvider(ChatProvider):
         self._begin_request()
         payload = self._payload(messages, system_prompt, stream=True)
         chunks: list[str] = []
+        finished = False
+        finish_reason = None
         try:
             with self._client() as client:
                 active_payload = payload
@@ -302,9 +308,15 @@ class OpenAICompatibleProvider(ChatProvider):
                         else:
                             self._raise_for_status(response)
                             for line in response.iter_lines():
-                                content, usage, finished = _parse_sse_line(line)
+                                content, usage, finished, reason = _parse_sse_line(line)
                                 if usage is not None:
                                     self._last_usage = usage
+                                if finish_reason is not None and content:
+                                    raise ValueError("回答終了後に本文が届きました")
+                                if reason is not None:
+                                    finish_reason = reason
+                                    if chunks or content.strip():
+                                        _validate_finish_reason(reason)
                                 if content:
                                     chunks.append(content)
                                     yield content
@@ -315,6 +327,10 @@ class OpenAICompatibleProvider(ChatProvider):
                         active_payload.pop("stream_options", None)
                     else:
                         break
+            if not finished:
+                raise ValueError("回答の終端が届きませんでした")
+            if any(chunk.strip() for chunk in chunks):
+                _validate_finish_reason(finish_reason)
         except httpx.TimeoutException as exc:
             raise self._connection_error(
                 "LLMの回答待ちがタイムアウトしました。設定の秒数や通信環境を確認してください。"
@@ -463,6 +479,8 @@ class OpenAICompatibleProvider(ChatProvider):
 def _extract_message_content(data: object) -> str:
     if not isinstance(data, dict):
         raise ValueError("応答がオブジェクトではありません")
+    if "error" in data:
+        raise ValueError("APIエラーが返されました")
     choices = data.get("choices")
     if not isinstance(choices, list) or not choices:
         raise ValueError("choicesがありません")
@@ -508,16 +526,23 @@ def _safe_bad_request_message(response: httpx.Response) -> str:
     return "LLM APIがリクエストを受け付けませんでした。モデル名と設定を確認してください。"
 
 
-def _parse_sse_line(line: str) -> tuple[str, TokenUsage | None, bool]:
+def _validate_finish_reason(reason: object) -> None:
+    """終了理由を省略する互換APIを保ち、明示された異常終了は拒否する。"""
+
+    if reason is not None and reason != "stop":
+        raise ValueError("回答が正常に完了しませんでした")
+
+
+def _parse_sse_line(line: str) -> tuple[str, TokenUsage | None, bool, object]:
     stripped = line.strip()
     if not stripped or stripped.startswith(":"):
-        return "", None, False
+        return "", None, False, None
     if stripped.startswith("data:"):
         stripped = stripped[5:].strip()
     else:
-        return "", None, False
+        return "", None, False, None
     if stripped == "[DONE]":
-        return "", None, True
+        return "", None, True, None
 
     data: Any = json.loads(stripped)
     if not isinstance(data, dict):
@@ -528,13 +553,14 @@ def _parse_sse_line(line: str) -> tuple[str, TokenUsage | None, bool]:
     usage = TokenUsage.from_api(data.get("usage"))
     choices = data.get("choices")
     if not choices:
-        return "", usage, False
+        return "", usage, False, None
     if not isinstance(choices, list) or not isinstance(choices[0], dict):
         raise ValueError("ストリームのchoicesが不正です")
     delta = choices[0].get("delta")
+    reason = choices[0].get("finish_reason")
     if not isinstance(delta, dict):
-        return "", usage, False
+        return "", usage, False, reason
     content = delta.get("content")
     if content is None:
-        return "", usage, False
-    return _content_to_text(content), usage, False
+        return "", usage, False, reason
+    return _content_to_text(content), usage, False, reason

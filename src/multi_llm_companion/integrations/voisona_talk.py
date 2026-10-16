@@ -5,8 +5,8 @@ from __future__ import annotations
 import tempfile
 import threading
 import time
-from collections.abc import Callable
-from contextlib import suppress
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager, suppress
 from dataclasses import dataclass
 from pathlib import Path
 from queue import Empty, Full, Queue
@@ -103,6 +103,7 @@ class VoiSonaTalkVoiceOutput(VoiceOutputPort):
         self._lock = threading.RLock()
         # 文単位先読み用の経路。従来の一括発話状態とは分離する。
         self._stream_generation = 0
+        self._stream_expression: ExpressionChannel | None = None
         self._stream_input: Queue[_StreamSegment | None] | None = None
         self._stream_output: Queue[_PreparedStreamSegment | None] | None = None
         self._stream_stop_event: threading.Event | None = None
@@ -115,6 +116,11 @@ class VoiSonaTalkVoiceOutput(VoiceOutputPort):
         self._stream_playback_started = False
         self._stream_next_index = 0
         self._is_closed = False
+        self._client_users = 0
+        self._cleanup_queue: Queue[
+            tuple[tuple[str, ...], tempfile.TemporaryDirectory[str] | None]
+        ] = Queue()
+        self._cleanup_thread: threading.Thread | None = None
 
     @property
     def is_available(self) -> bool:
@@ -195,12 +201,27 @@ class VoiSonaTalkVoiceOutput(VoiceOutputPort):
     def start_stream(self, text: str) -> None:
         """一文目を即時合成し、後続文を並行して先読みする。"""
 
-        self.stop()
-        if not text.strip() or not self.is_available:
-            return
+        self._start_stream_with_expression(text, None)
+
+    def _set_stream_expression(self, expression: ExpressionChannel | None) -> None:
+        """確定した今回の感情を、まだ合成していない文へ適用する。"""
+
         with self._lock:
+            if self._stream_active:
+                self._stream_expression = expression
+
+    def _start_stream_with_expression(
+        self, text: str, expression: ExpressionChannel | None
+    ) -> None:
+        with self._lock:
+            if self._is_closed:
+                return
+            self.stop()
+            if not text.strip() or not self.is_available:
+                return
             self._stream_generation += 1
             generation = self._stream_generation
+            self._stream_expression = expression
             stop_event = threading.Event()
             input_queue: Queue[_StreamSegment | None] = Queue()
             output_queue: Queue[_PreparedStreamSegment | None] = Queue(maxsize=2)
@@ -229,6 +250,8 @@ class VoiSonaTalkVoiceOutput(VoiceOutputPort):
             name="voisona-stream-playback",
         )
         with self._lock:
+            if generation != self._stream_generation or stop_event.is_set():
+                return
             self._stream_producer = producer
             self._stream_consumer = consumer
         producer.start()
@@ -287,7 +310,12 @@ class VoiSonaTalkVoiceOutput(VoiceOutputPort):
         completed_workers: Queue[None] = Queue()
         workers: list[threading.Thread] = []
         try:
-            voice_name, voice_version = self._resolve_voice()
+            with self._client_operation() as active:
+                if not active or stop_event.is_set():
+                    return
+                voice_name, voice_version = self._resolve_voice()
+            if stop_event.is_set():
+                return
             for worker_index in range(self._STREAM_WORKER_COUNT):
                 worker = threading.Thread(
                     target=self._stream_synthesis_worker,
@@ -384,13 +412,39 @@ class VoiSonaTalkVoiceOutput(VoiceOutputPort):
         voice_version: str,
         stop_event: threading.Event,
     ) -> _PreparedStreamSegment | None:
+        with self._client_operation() as active:
+            if not active:
+                return None
+            temp_dir = tempfile.TemporaryDirectory(
+                prefix="multi-llm-companion-stream-", dir=self._temp_root
+            )
+            try:
+                return self._synthesize_stream_request(
+                    generation,
+                    segment,
+                    voice_name,
+                    voice_version,
+                    stop_event,
+                    Path(temp_dir.name) / "voisona-output.wav",
+                )
+            finally:
+                self._queue_cleanup((), temp_dir)
+
+    def _synthesize_stream_request(
+        self,
+        generation: int,
+        segment: _StreamSegment,
+        voice_name: str,
+        voice_version: str,
+        stop_event: threading.Event,
+        wav_path: Path,
+    ) -> _PreparedStreamSegment | None:
         """一文をWAVへ変換し、再生前のメモリへ読み込む。"""
 
-        temp_dir = tempfile.TemporaryDirectory(
-            prefix="multi-llm-companion-stream-",
-            dir=self._temp_root,
-        )
-        wav_path = Path(temp_dir.name) / "voisona-output.wav"
+        with self._lock:
+            if generation != self._stream_generation or stop_event.is_set():
+                return None
+            global_parameters = self._expression_parameters(self._stream_expression)
         payload: dict[str, Any] = {
             "text": segment.text,
             "language": self._language,
@@ -402,6 +456,8 @@ class VoiSonaTalkVoiceOutput(VoiceOutputPort):
         }
         if voice_version:
             payload["voice_version"] = voice_version
+        if global_parameters is not None:
+            payload["global_parameters"] = global_parameters
         write_lip_sync_trace(
             "voice",
             "stream_synthesis_requested",
@@ -412,15 +468,13 @@ class VoiSonaTalkVoiceOutput(VoiceOutputPort):
         result = response.json()
         request_uuid = self._extract_uuid(result)
         if request_uuid is None:
-            temp_dir.cleanup()
             raise ValueError("VoiSona Talkの受付番号がありません。")
         with self._lock:
             stale = generation != self._stream_generation or stop_event.is_set()
             if not stale:
                 self._stream_active_requests.add(request_uuid)
         if stale:
-            self._delete_synthesis(request_uuid)
-            temp_dir.cleanup()
+            self._queue_cleanup((request_uuid,))
             return None
         try:
             deadline = time.monotonic() + self._monitor_timeout
@@ -471,9 +525,10 @@ class VoiSonaTalkVoiceOutput(VoiceOutputPort):
             return None
         finally:
             with self._lock:
-                self._stream_active_requests.discard(request_uuid)
-            self._delete_synthesis(request_uuid)
-            temp_dir.cleanup()
+                # 停止処理へ渡した要求を、合成ワーカーから重ねて削除しない。
+                if request_uuid in self._stream_active_requests:
+                    self._stream_active_requests.remove(request_uuid)
+                    self._queue_cleanup((request_uuid,))
 
     def _consume_stream_segments(
         self,
@@ -561,23 +616,23 @@ class VoiSonaTalkVoiceOutput(VoiceOutputPort):
         """一文を現在のWAV再生器へ渡し、音声時計を開始する。"""
 
         try:
-            self._wav_player.load(prepared.wav_data)
-            content_duration = max(
-                0.04,
-                self._wav_player.duration_seconds - self._wav_player.lead_in_seconds,
-            )
-            schedule = self._create_lip_sync_schedule(
-                prepared.text,
-                prepared.result,
-                0.0,
-                audio_duration=content_duration,
-            )
             with self._lock:
                 if generation != self._stream_generation or not self._stream_active:
                     return False
+                self._wav_player.load(prepared.wav_data)
+                content_duration = max(
+                    0.04,
+                    self._wav_player.duration_seconds - self._wav_player.lead_in_seconds,
+                )
+                schedule = self._create_lip_sync_schedule(
+                    prepared.text,
+                    prepared.result,
+                    0.0,
+                    audio_duration=content_duration,
+                )
                 self._stream_lip_sync_schedule = schedule
                 self._stream_playback_started = True
-            self._wav_player.play()
+                self._wav_player.play()
             write_lip_sync_trace(
                 "voice",
                 "stream_managed_wav_playback_started",
@@ -618,9 +673,32 @@ class VoiSonaTalkVoiceOutput(VoiceOutputPort):
         write_lip_sync_trace("voice", "stream_managed_wav_playback_completed")
 
     def _speak(self, text: str, expression: ExpressionChannel | None) -> None:
+        self._speak_unless_cancelled(text, expression, None)
+
+    def _speak_unless_cancelled(
+        self,
+        text: str,
+        expression: ExpressionChannel | None,
+        cancel_event: threading.Event | None,
+    ) -> None:
+        with self._client_operation() as active:
+            if active:
+                self._speak_request(text, expression, cancel_event)
+
+    def _speak_request(
+        self,
+        text: str,
+        expression: ExpressionChannel | None,
+        cancel_event: threading.Event | None,
+    ) -> None:
         if not text.strip() or not self.is_available:
             return
-        self.stop()
+        with self._lock:
+            if self._is_closed or (cancel_event is not None and cancel_event.is_set()):
+                return
+            self.stop()
+            generation = self._monitor_generation
+            global_parameters = self._expression_parameters(expression)
         temp_dir: tempfile.TemporaryDirectory[str] | None = None
         try:
             voice_name, voice_version = self._resolve_voice()
@@ -640,9 +718,16 @@ class VoiSonaTalkVoiceOutput(VoiceOutputPort):
             }
             if voice_version:
                 payload["voice_version"] = voice_version
-            global_parameters = self._expression_parameters(expression)
             if global_parameters is not None:
                 payload["global_parameters"] = global_parameters
+            with self._lock:
+                if (
+                    generation != self._monitor_generation
+                    or self._is_closed
+                    or (cancel_event is not None and cancel_event.is_set())
+                ):
+                    self._queue_cleanup((), temp_dir)
+                    return
             response = self._client.post(f"{self._base_url}/speech-syntheses", json=payload)
             response.raise_for_status()
             result = response.json()
@@ -650,6 +735,13 @@ class VoiSonaTalkVoiceOutput(VoiceOutputPort):
             if request_uuid is None:
                 raise ValueError("VoiSona Talkの受付番号がありません。")
             with self._lock:
+                if (
+                    generation != self._monitor_generation
+                    or self._is_closed
+                    or (cancel_event is not None and cancel_event.is_set())
+                ):
+                    self._queue_cleanup((request_uuid,), temp_dir)
+                    return
                 self._last_uuid = request_uuid
                 self._last_error = None
                 self._is_speaking = True
@@ -658,8 +750,6 @@ class VoiSonaTalkVoiceOutput(VoiceOutputPort):
                 self._lip_sync_schedule = None
                 self._playback_started = False
                 self._pending_text = text
-                self._monitor_generation += 1
-                generation = self._monitor_generation
             write_lip_sync_trace(
                 "provider",
                 "request_accepted",
@@ -677,6 +767,12 @@ class VoiSonaTalkVoiceOutput(VoiceOutputPort):
             if temp_dir is not None:
                 temp_dir.cleanup()
             with self._lock:
+                if (
+                    generation != self._monitor_generation
+                    or self._is_closed
+                    or (cancel_event is not None and cancel_event.is_set())
+                ):
+                    return
                 self._is_speaking = False
                 self._pending_temp_dir = None
                 self._pending_wav_path = None
@@ -752,6 +848,7 @@ class VoiSonaTalkVoiceOutput(VoiceOutputPort):
             self._pending_text = ""
             self._monitor_generation += 1
             self._stream_generation += 1
+            self._stream_expression = None
             self._stream_active = False
             self._stream_closed = True
             self._stream_input = None
@@ -761,25 +858,96 @@ class VoiSonaTalkVoiceOutput(VoiceOutputPort):
             self._stream_playback_started = False
             self._stream_next_index = 0
             self._stream_active_requests.clear()
-        if stream_stop_event is not None:
-            stream_stop_event.set()
-        self._wav_player.stop()
+            if stream_stop_event is not None:
+                stream_stop_event.set()
+            self._wav_player.stop()
+            request_uuids = tuple(
+                uuid for uuid in (request_uuid, *stream_request_uuids) if uuid is not None
+            )
+            self._queue_cleanup(request_uuids, temp_dir)
         if had_active_playback:
             write_lip_sync_trace("wav_player", "playback_stop_completed")
-        request_uuids = tuple(
-            uuid for uuid in (request_uuid, *stream_request_uuids) if uuid is not None
-        )
-        for active_uuid in request_uuids:
-            self._delete_synthesis(active_uuid)
-        if temp_dir is not None:
-            with suppress(OSError):
-                temp_dir.cleanup()
 
     def close(self) -> None:
         with self._lock:
             self._is_closed = True
-        self.stop()
-        self._client.close()
+            self.stop()
+
+    @contextmanager
+    def _client_operation(self) -> Iterator[bool]:
+        """遅着受付の後始末を登録するまで、使用中のHTTP接続を閉じない。"""
+
+        with self._lock:
+            active = not self._is_closed
+            if active:
+                self._client_users += 1
+        try:
+            yield active
+        finally:
+            if active:
+                with self._lock:
+                    self._client_users -= 1
+                    self._ensure_cleanup_worker()
+
+    def _queue_cleanup(
+        self,
+        request_uuids: tuple[str, ...],
+        temp_dir: tempfile.TemporaryDirectory[str] | None = None,
+    ) -> None:
+        with self._lock:
+            if request_uuids or temp_dir is not None:
+                self._cleanup_queue.put((request_uuids, temp_dir))
+            self._ensure_cleanup_worker()
+
+    def _ensure_cleanup_worker(self) -> None:
+        """ロック保持中に、後始末用の作業を一つだけ起動する。"""
+
+        if self._cleanup_thread is not None:
+            return
+        if self._cleanup_queue.empty() and not (self._is_closed and self._client_users == 0):
+            return
+        if self._cleanup_queue.empty() and self._client.is_closed:
+            return
+        self._cleanup_thread = threading.Thread(
+            target=self._run_cleanup, daemon=True, name="voisona-cleanup"
+        )
+        self._cleanup_thread.start()
+
+    def _run_cleanup(self) -> None:
+        completed = False
+        try:
+            self._drain_cleanup_queue()
+            completed = True
+        finally:
+            with self._lock:
+                self._cleanup_thread = None
+                if completed or not self._cleanup_queue.empty():
+                    self._ensure_cleanup_worker()
+
+    def _drain_cleanup_queue(self) -> None:
+        while True:
+            with self._lock:
+                if self._cleanup_queue.empty():
+                    close_client = self._is_closed and self._client_users == 0
+                    work = None
+                else:
+                    work = self._cleanup_queue.get_nowait()
+            if work is None:
+                if close_client:
+                    self._client.close()
+                return
+            request_uuids, temp_dir = work
+            try:
+                for request_uuid in request_uuids:
+                    try:
+                        self._delete_synthesis(request_uuid)
+                    except (OSError, RuntimeError):
+                        write_lip_sync_trace("provider", "cleanup_error")
+            finally:
+                if temp_dir is not None:
+                    with suppress(OSError):
+                        temp_dir.cleanup()
+                self._cleanup_queue.task_done()
 
     def _delete_synthesis(self, request_uuid: str) -> None:
         """終了済みクライアントだけは、削除待ちの非同期処理を安全に終える。"""
@@ -803,7 +971,10 @@ class VoiSonaTalkVoiceOutput(VoiceOutputPort):
                 if generation != self._monitor_generation or self._last_uuid != request_uuid:
                     return
             try:
-                response = self._client.get(f"{self._base_url}/speech-syntheses/{request_uuid}")
+                with self._client_operation() as active:
+                    if not active:
+                        return
+                    response = self._client.get(f"{self._base_url}/speech-syntheses/{request_uuid}")
                 response.raise_for_status()
                 result = response.json()
                 completed = self._is_request_completed(result)
@@ -851,11 +1022,8 @@ class VoiSonaTalkVoiceOutput(VoiceOutputPort):
             self._playback_started = False
             self._pending_text = ""
             self._last_error = "VoiSona Talkの音声生成が時間内に完了しませんでした。"
-        self._wav_player.stop()
-        self._delete_synthesis(request_uuid)
-        if temp_dir is not None:
-            with suppress(OSError):
-                temp_dir.cleanup()
+            self._wav_player.stop()
+            self._queue_cleanup((request_uuid,), temp_dir)
         write_lip_sync_trace("provider", "monitor_timeout")
 
     def _start_downloaded_audio(
@@ -871,32 +1039,32 @@ class VoiSonaTalkVoiceOutput(VoiceOutputPort):
                 return False
             wav_path = self._pending_wav_path
             temp_dir = self._pending_temp_dir
+            # 読み込み中は、この処理が一時ファイルの後始末を引き受ける。
+            self._pending_temp_dir = None
             text = self._pending_text
         try:
             if wav_path is None:
                 raise OSError("WAV path is missing")
             wav_data = wav_path.read_bytes()
-            self._wav_player.load(wav_data)
-            content_duration = max(
-                0.04,
-                self._wav_player.duration_seconds - self._wav_player.lead_in_seconds,
-            )
-            schedule = self._create_lip_sync_schedule(
-                text,
-                result,
-                0.0,
-                audio_duration=content_duration,
-            )
             with self._lock:
                 if generation != self._monitor_generation or self._last_uuid != request_uuid:
                     return False
+                self._wav_player.load(wav_data)
+                content_duration = max(
+                    0.04,
+                    self._wav_player.duration_seconds - self._wav_player.lead_in_seconds,
+                )
+                schedule = self._create_lip_sync_schedule(
+                    text,
+                    result,
+                    0.0,
+                    audio_duration=content_duration,
+                )
                 self._lip_sync_schedule = schedule
                 self._playback_started = True
                 self._pending_temp_dir = None
                 self._pending_wav_path = None
-            if temp_dir is not None:
-                temp_dir.cleanup()
-            self._wav_player.play()
+                self._wav_player.play()
             write_lip_sync_trace(
                 "provider",
                 "managed_wav_playback_started",
@@ -907,11 +1075,12 @@ class VoiSonaTalkVoiceOutput(VoiceOutputPort):
             )
             return True
         except (OSError, ValueError, RuntimeError):
+            self._fail_playback(request_uuid, generation)
+            return False
+        finally:
             if temp_dir is not None:
                 with suppress(OSError):
                     temp_dir.cleanup()
-            self._fail_playback(request_uuid, generation)
-            return False
 
     def _finish_request(self, request_uuid: str, generation: int) -> None:
         """アプリ管理再生の終了と同時に口を閉じる。"""
@@ -927,11 +1096,8 @@ class VoiSonaTalkVoiceOutput(VoiceOutputPort):
             self._lip_sync_schedule = None
             self._playback_started = False
             self._pending_text = ""
-        self._wav_player.stop()
-        self._delete_synthesis(request_uuid)
-        if temp_dir is not None:
-            with suppress(OSError):
-                temp_dir.cleanup()
+            self._wav_player.stop()
+            self._queue_cleanup((request_uuid,), temp_dir)
         write_lip_sync_trace("provider", "managed_wav_playback_completed")
 
     def _fail_playback(self, request_uuid: str, generation: int) -> None:
@@ -942,12 +1108,14 @@ class VoiSonaTalkVoiceOutput(VoiceOutputPort):
                 return
             self._last_uuid = None
             self._is_speaking = False
+            self._pending_temp_dir = None
+            self._pending_wav_path = None
             self._lip_sync_schedule = None
             self._playback_started = False
             self._pending_text = ""
             self._last_error = "VoiSona TalkのWAV音声を再生できませんでした。"
-        self._wav_player.stop()
-        self._delete_synthesis(request_uuid)
+            self._wav_player.stop()
+            self._queue_cleanup((request_uuid,))
 
     def _resolve_voice(self) -> tuple[str, str]:
         if not self._voice_name:

@@ -134,16 +134,33 @@ class VoiceStartWorker(QObject):
         self._text = text
         self._generation = generation
         self._proactive = proactive
+        self._cancel_event = threading.Event()
+
+    def cancel(self) -> None:
+        """開始前と受付中の両方で、古い要求を無効化する。"""
+
+        self._cancel_event.set()
 
     @Slot()
     def run(self) -> None:
         try:
-            start = (
-                self._backend.start_proactive_voice_output
-                if self._proactive
-                else self._backend.start_voice_output
-            )
-            self.completed.emit((self._generation, start(self._text)))
+            if self._cancel_event.is_set():
+                return
+            guarded_start = getattr(self._backend, "_start_voice_output", None)
+            if callable(guarded_start):
+                result = guarded_start(
+                    self._text,
+                    reject_invalidated_stream=not self._proactive,
+                    cancel_event=self._cancel_event,
+                )
+            else:
+                start = (
+                    self._backend.start_proactive_voice_output
+                    if self._proactive
+                    else self._backend.start_voice_output
+                )
+                result = start(self._text)
+            self.completed.emit((self._generation, result))
         except Exception:  # 画面へ内部情報を露出しない
             self.completed.emit(
                 (

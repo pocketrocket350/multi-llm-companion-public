@@ -4,11 +4,13 @@ Windowsで、文字・音声とMMDアバターを使って会話するPythonア�
 
 **最初はAPIキー不要のMockで起動できます。** Mockは動作確認用の固定応答です。AIとの会話には外部LLMの設定が必要です。
 
-**正式版 v1.0.0（初版）**：[ダウンロード](https://github.com/pocketrocket350/multi-llm-companion-public/releases/tag/v1.0.0)
+**正式版 v1.0.1（修正版）**：[ダウンロード](https://github.com/pocketrocket350/multi-llm-companion-public/releases/tag/v1.0.1)
 
 ## はじめる
 
-Windows 11、Python 3.12、初回セットアップ用のインターネット接続を用意します。
+Windows 11、Python 3.12 x64、初回セットアップ用のインターネット接続を用意します。
+
+このソースのセットアップは `constraints-windows-py312.txt` に記録した依存版を使います。固定範囲と導入手順は [配布ファイルと導入](docs/release_ja.md) を参照してください。
 
 1. ソースZIPを新しいフォルダーへ展開します。
 2. `setup_windows.bat` を開き、「セットアップが正常に終わりました」を待ちます。

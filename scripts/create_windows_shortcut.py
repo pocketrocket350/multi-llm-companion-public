@@ -5,6 +5,10 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 
+from PySide6.QtWidgets import QApplication
+
+from multi_llm_companion.ui._window_chrome import _application_icon
+
 
 def _literal(value: str) -> str:
     return "'" + value.replace("'", "''") + "'"
@@ -16,6 +20,12 @@ def create_shortcut(root: Path) -> None:
     launcher = root / "scripts/launch_windowed.py"
     if not python.is_file() or not launcher.is_file():
         raise FileNotFoundError("起動用ファイルがありません。セットアップを確認してください。")
+    # 絵文字は利用者のWindowsで描画し、フォントや画像素材は同梱しない。
+    _app = QApplication.instance() or QApplication([])
+    icon_path = root / "local/app-icon.ico"
+    icon_path.parent.mkdir(parents=True, exist_ok=True)
+    if not _application_icon().pixmap(256, 256).save(str(icon_path), "ICO"):
+        raise OSError("起動用アイコンを作成できませんでした。")
     arguments = f'"{launcher}"'
     command = (
         "$ErrorActionPreference = 'Stop'; "
@@ -24,6 +34,7 @@ def create_shortcut(root: Path) -> None:
         f"$link.TargetPath = {_literal(str(python))}; "
         f"$link.Arguments = {_literal(arguments)}; "
         f"$link.WorkingDirectory = {_literal(str(root))}; "
+        f"$link.IconLocation = {_literal(str(icon_path))}; "
         "$link.Description = 'multi-llm-companion'; $link.Save()"
     )
     subprocess.run(

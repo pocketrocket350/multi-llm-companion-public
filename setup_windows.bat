@@ -2,14 +2,14 @@
 chcp 65001 >nul
 setlocal
 cd /d "%~dp0"
-set "MSG_PYTHON_MISSING=[エラー] Python 3.12 が見つかりませんでした。"
-set "MSG_PYTHON_INSTALL=Python 3.12 を公式サイトからインストールし、もう一度実行してください。"
+set "MSG_PYTHON_MISSING=[エラー] Python 3.12 x64 が見つかりませんでした。"
+set "MSG_PYTHON_INSTALL=Python 3.12 x64 を公式サイトからインストールし、もう一度実行してください。"
 set "MSG_PRESS_CLOSE=何かキーを押すと閉じます。"
 set "MSG_VENV_VERSION=[エラー] 既存の仮想環境は必要なバージョンではありません。"
 set "MSG_DELETE_VENV=アプリ終了後、.venv を .venv-before-recovery へ名前変更してください。"
 set "MSG_RERUN_SETUP=setup_windows.bat をもう一度実行してください。"
 set "MSG_USE_VENV=[1/5] .venv を使用します。"
-set "MSG_CREATE_VENV=[1/5] Python 3.12 の仮想環境を作成しています..."
+set "MSG_CREATE_VENV=[1/5] Python 3.12 x64 の仮想環境を作成しています..."
 set "MSG_VENV_FAILED=[エラー] 仮想環境を作成できませんでした。"
 set "MSG_PIP_FAILED=[エラー] pipの更新に失敗しました。"
 set "MSG_INSTALL_FAILED=[エラー] パッケージのインストールに失敗しました。"
@@ -32,9 +32,9 @@ echo ================================================
 echo.
 
 set "PYTHON_CMD="
-py -3.12 -c "import sys; raise SystemExit(0 if sys.version_info[:2] == (3, 12) else 1)" >nul 2>&1
+py -3.12 -c "import sys; raise SystemExit(0 if sys.version_info[:2] == (3, 12) and sys.maxsize > 2**32 and __import__('platform').machine().upper() == 'AMD64' else 1)" >nul 2>&1
 if not errorlevel 1 set "PYTHON_CMD=py -3.12"
-if not defined PYTHON_CMD python -c "import sys; raise SystemExit(0 if sys.version_info[:2] == (3, 12) else 1)" >nul 2>&1
+if not defined PYTHON_CMD python -c "import sys; raise SystemExit(0 if sys.version_info[:2] == (3, 12) and sys.maxsize > 2**32 and __import__('platform').machine().upper() == 'AMD64' else 1)" >nul 2>&1
 if not defined PYTHON_CMD if not errorlevel 1 set "PYTHON_CMD=python"
 
 if not defined PYTHON_CMD echo.
@@ -51,7 +51,7 @@ echo [確認] %PYTHON_VERSION% が見つかりました。
 set "VENV_EXISTS=0"
 if exist ".venv\Scripts\python.exe" set "VENV_EXISTS=1"
 set "VENV_CHECK_RESULT=0"
-if "%VENV_EXISTS%"=="1" ".venv\Scripts\python.exe" -c "import sys; raise SystemExit(0 if sys.version_info[:2] == (3, 12) else 1)" >nul 2>&1
+if "%VENV_EXISTS%"=="1" ".venv\Scripts\python.exe" -c "import sys; raise SystemExit(0 if sys.version_info[:2] == (3, 12) and sys.maxsize > 2**32 and __import__('platform').machine().upper() == 'AMD64' else 1)" >nul 2>&1
 if "%VENV_EXISTS%"=="1" set "VENV_CHECK_RESULT=%ERRORLEVEL%"
 if not "%VENV_CHECK_RESULT%"=="0" echo.
 if not "%VENV_CHECK_RESULT%"=="0" echo %MSG_VENV_VERSION%
@@ -72,8 +72,8 @@ if not "%VENV_CREATE_RESULT%"=="0" echo %MSG_PRESS_CLOSE%
 if not "%VENV_CREATE_RESULT%"=="0" pause >nul
 if not "%VENV_CREATE_RESULT%"=="0" exit /b 1
 
-echo [2/5] pipを更新しています...
-".venv\Scripts\python.exe" -m pip install --upgrade pip
+echo [2/5] 検証済みの版のpipを準備しています...
+".venv\Scripts\python.exe" -m pip install --upgrade pip --constraint "constraints-windows-py312.txt"
 set "PIP_UPGRADE_RESULT=%ERRORLEVEL%"
 if not "%PIP_UPGRADE_RESULT%"=="0" echo.
 if not "%PIP_UPGRADE_RESULT%"=="0" echo %MSG_PIP_FAILED%
@@ -83,7 +83,7 @@ if not "%PIP_UPGRADE_RESULT%"=="0" pause >nul
 if not "%PIP_UPGRADE_RESULT%"=="0" exit /b 1
 
 echo [3/5] アプリと必要なパッケージをインストールしています...
-".venv\Scripts\python.exe" -m pip install -e .
+".venv\Scripts\python.exe" -m pip install -e . --constraint "constraints-windows-py312.txt" --build-constraint "constraints-windows-py312.txt"
 set "INSTALL_RESULT=%ERRORLEVEL%"
 if not "%INSTALL_RESULT%"=="0" echo.
 if not "%INSTALL_RESULT%"=="0" echo %MSG_INSTALL_FAILED%

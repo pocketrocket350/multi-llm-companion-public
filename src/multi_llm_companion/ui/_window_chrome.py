@@ -5,7 +5,7 @@ import sys
 from functools import cache
 
 from PySide6.QtCore import QByteArray, QSize, Qt
-from PySide6.QtGui import QIcon, QPainter, QPixmap
+from PySide6.QtGui import QFont, QIcon, QPainter, QPixmap
 from PySide6.QtSvg import QSvgRenderer
 from PySide6.QtWidgets import QApplication, QPushButton, QWidget
 
@@ -28,6 +28,24 @@ _SHAPES = {
     "full_body": ('<circle cx="12" cy="5" r="3"/><path d="M6 11h12M12 8v7m0 0-4 7m4-7 4 7"/>'),
     "bust": '<circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 6 0 0 1 16 0v2"/>',
 }
+
+
+@cache
+def _application_icon() -> QIcon:
+    """OS標準の閉じた傘を、タスクバーとショートカットに使う。"""
+
+    icon = QIcon()
+    for size in (16, 20, 24, 32, 40, 48, 64, 128, 256):
+        pixmap = QPixmap(size, size)
+        pixmap.fill(Qt.GlobalColor.transparent)
+        painter = QPainter(pixmap)
+        font = QFont("Segoe UI Emoji")
+        font.setPixelSize(round(size * 0.85))
+        painter.setFont(font)
+        painter.drawText(pixmap.rect(), Qt.AlignmentFlag.AlignCenter, "🌂")
+        painter.end()
+        icon.addPixmap(pixmap)
+    return icon
 
 
 @cache

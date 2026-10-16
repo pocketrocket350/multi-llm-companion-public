@@ -64,7 +64,11 @@ from multi_llm_companion.services.web_search import (
 )
 from multi_llm_companion.streaming import SpeechSentenceBuffer
 from multi_llm_companion.ui._dialog_layout import _AvatarPreview, _fit_dialog
-from multi_llm_companion.ui._window_chrome import _apply_title_bar_palette, _set_control_icon
+from multi_llm_companion.ui._window_chrome import (
+    _application_icon,
+    _apply_title_bar_palette,
+    _set_control_icon,
+)
 from multi_llm_companion.ui._windows_ime import _enable_windows_ime
 from multi_llm_companion.ui.avatar_widget import AvatarWidget
 from multi_llm_companion.ui.conversation_view import ConversationView
@@ -249,6 +253,7 @@ class ChatWindow(QMainWindow):
         self._avatar_display_name = ""
 
         self.setWindowTitle("雨衣 — Multi LLM Companion")
+        self.setWindowIcon(_application_icon())
         self.resize(1120, 780)
         self.setMinimumSize(760, 540)
         self.setAcceptDrops(True)
@@ -1271,6 +1276,8 @@ class ChatWindow(QMainWindow):
         if self._proactive_voice_generation == self._utterance_generation:
             self._proactive_voice_generation = None
         self._utterance_generation += 1
+        if self._voice_worker is not None:
+            self._voice_worker.cancel()
         self._disarm_continuous_voice_restart()
         self._reset_stream_voice_state()
         self._pending_voice_text = None
@@ -2056,6 +2063,9 @@ class ChatWindow(QMainWindow):
             outcome.gaze_intensity,
             outcome.expression_status_text,
         )
+        update_voice_expression = getattr(self._backend, "_update_stream_voice_expression", None)
+        if callable(update_voice_expression):
+            update_voice_expression()
         remaining = self._stream_sentence_buffer.flush()
         if remaining:
             self._queue_stream_sentence(remaining)
@@ -2241,9 +2251,6 @@ class ChatWindow(QMainWindow):
             generation = self._utterance_generation
             result = value
         if generation != self._utterance_generation:
-            self._backend.stop_voice_output()
-            self.pmx_preview_widget.interrupt_motion()
-            self._sync_voice_animation()
             return
         error = result if isinstance(result, str) and result else None
         if error:

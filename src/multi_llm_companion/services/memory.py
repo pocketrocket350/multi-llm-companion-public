@@ -374,6 +374,10 @@ class MemoryService:
                     # 引用だけを根拠とするモデルの削除案は採用しない。
                     if not _is_forget_request(user_text) or _NON_FACT_CONTEXT.search(user_text):
                         continue
+                    matches = self._forget_matches(user_text, conversation_id)
+                    if len(matches) != 1 or matches[0].id != old.id:
+                        self._last_forget_ambiguous = True
+                        continue
                     if self._repository.delete_memory(old.id):
                         touched.add(old.id)
                         known.pop(old.id)
@@ -532,6 +536,15 @@ class MemoryService:
 
         if not _is_forget_request(user_text) or _NON_FACT_CONTEXT.search(user_text):
             return []
+        matches = self._forget_matches(user_text, conversation_id)
+        if len(matches) != 1:
+            return []
+        memory = matches[0]
+        return [memory] if self._repository.delete_memory(memory.id) else []
+
+    def _forget_matches(self, user_text: str, conversation_id: str) -> list[MemoryEntry]:
+        """モデルが対象を指名した場合も、本人の依頼から一意に照合する。"""
+
         target = _forget_target(user_text)
         memories = self._repository.list_memories()
         if target:
@@ -545,10 +558,7 @@ class MemoryService:
             matches = local[:1] if len(local) == 1 else []
         else:
             matches = []
-        if len(matches) != 1:
-            return []
-        memory = matches[0]
-        return [memory] if self._repository.delete_memory(memory.id) else []
+        return matches
 
     def context_for(self, user_text: str) -> str:
         """承認済みかつ今回に関係する記憶だけをシステム指示に加える。"""
@@ -701,8 +711,10 @@ def _semantic_evidence_is_usable(text: str, evidence: str, content: str) -> bool
         clause,
     ):
         return False
-    third_party = re.search(r"(?:弟|妹|兄|姉|父|母|彼女|友人|友達|著者|先生|彼)(?:は|が)", clause)
-    if third_party and re.match(r"(?:ユーザー|利用者)(?:は|が)", content):
+    subject_clause = (
+        evidence + after if re.match(r"(?:私|僕|俺|自分)(?:は|が|の)", evidence) else clause
+    )
+    if not _memory_subject_is_preserved(subject_clause, content):
         return False
     # 否定した好みを肯定の好みとして保存しない。否定そのものの記憶は許す。
     return not (
@@ -710,6 +722,28 @@ def _semantic_evidence_is_usable(text: str, evidence: str, content: str) -> bool
         and "好き" in content
         and not re.search(r"好き(?:では|じゃ|で)ない|好きではありません", content)
     )
+
+
+def _memory_subject_is_preserved(clause: str, content: str) -> bool:
+    """旧候補と意味更新で、第三者の属性を本人へ移す誤りを防ぐ。"""
+
+    third_party = re.search(
+        r"(?P<person>弟|妹|兄|姉|父|母|彼女|友人|友達|友だち|著者|先生|上司|部下|夫|妻|彼)"
+        r"(?:は|が|の(?:趣味|好み|仕事|職業|朝食)(?:は|が))",
+        clause,
+    )
+    if third_party:
+        # 所有表現でも人物を保持し、第三者の属性を本人へ移さない。
+        person = re.escape(third_party["person"])
+        if not re.match(rf"(?:(?:ユーザー|利用者)の)?{person}(?:は|が|の)", content):
+            # 同じ発言でも、独立した本人申告と一致する候補は残す。
+            personal_clauses = re.split(r"[。、,\n]", clause)
+            return any(
+                re.match(r"(?:私|僕|俺|自分)(?:は|が|の)", part.strip())
+                and _personal_fact_from_input(part) == content
+                for part in personal_clauses
+            ) and not re.search(r'[「」『』“”"`]', clause)
+    return True
 
 
 def _explicit_memory_candidates(user_text: str) -> list[str]:
@@ -775,9 +809,20 @@ def _is_safe_legacy_memory(content: str) -> bool:
 
 
 def _is_forget_request(text: str) -> bool:
-    return bool(
-        ("忘れて" in text or "忘れたい" in text)
-        and not re.search(r"忘れて(?:と|って)(?:言|頼)|忘れていた", text)
+    """確認・否定・引用を削除へ変えず、明確な末尾の依頼だけ採用する。"""
+
+    if re.search(r"[？?]", text) or text.count("忘れ") != 1:
+        return False
+    request = re.search(
+        r"忘れて(?:おいて)?(?:(?:ください|下さい|くれ|ほしい)(?:です)?)?(?:ね|よ)?[。！!\s]*$",
+        text,
+    )
+    if request is None:
+        return False
+    before = text[: request.start()]
+    return before.count('"') % 2 == 0 and not any(
+        before.count(left) > before.count(right)
+        for left, right in (("「", "」"), ("『", "』"), ("“", "”"))
     )
 
 
@@ -814,6 +859,8 @@ def _matches_forget_target(target: str, content: str) -> bool:
 def _is_allowed_memory_candidate(user_text: str, content: str) -> bool:
     """一時状態と推測関係を保存前に除外する。"""
 
+    if not _memory_subject_is_preserved(user_text, content):
+        return False
     clauses = _candidate_clauses(content)
     if any(_APPENDED_RELATIONSHIP.search(clause) for clause in clauses):
         return False

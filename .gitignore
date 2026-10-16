@@ -53,6 +53,3 @@ Thumbs.db
 
 # このPCのインストール先を指す起動ショートカット
 /起動.lnk
-
-# 権利本文付きの既存DLLを保持する。
-!src/multi_llm_companion/ui/native/UMTNativePlugin.dll
