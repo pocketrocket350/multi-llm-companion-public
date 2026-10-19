@@ -9,8 +9,10 @@ from pathlib import Path
 from PySide6.QtWidgets import QApplication, QMessageBox
 
 from multi_llm_companion.application import ApplicationBackend, ApplicationError
-from multi_llm_companion.config import ConfigError, load_runtime_config
+from multi_llm_companion.config import ConfigError, EnvironmentSetupRequired, load_runtime_config
+from multi_llm_companion.environment import EnvironmentSettingsError
 from multi_llm_companion.ui.chat_window import ChatWindow
+from multi_llm_companion.ui.environment_dialog import EnvironmentDialog
 from multi_llm_companion.ui.render_quality import configure_default_surface_format
 
 
@@ -24,6 +26,23 @@ def main() -> int:
     backend: ApplicationBackend | None = None
     try:
         runtime = load_runtime_config(_project_root())
+    except EnvironmentSetupRequired as exc:
+        app = app or QApplication(sys.argv)
+        try:
+            dialog = EnvironmentDialog(_project_root())
+        except (ConfigError, EnvironmentSettingsError) as setup_error:
+            QMessageBox.critical(None, "環境設定を開けません", str(setup_error))
+            return 1
+        dialog.error_label.setText(str(exc))
+        accepted = dialog.exec() == EnvironmentDialog.DialogCode.Accepted
+        dialog.deleteLater()
+        if accepted:
+            QMessageBox.information(
+                None,
+                "環境設定を保存しました",
+                "アプリをもう一度起動してください。保存した方式で接続します。",
+            )
+        return 0 if accepted else 1
     except ConfigError as exc:
         app = app or QApplication(sys.argv)
         QMessageBox.critical(

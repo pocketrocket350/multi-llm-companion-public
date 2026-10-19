@@ -2,7 +2,9 @@
 
 | やりたいこと | 読む資料 |
 | --- | --- |
+| 旧版から更新する | [v1.1.0への更新手順](update_ja.md) |
 | はじめて起動する | [初心者ガイド](beginner_guide_ja.md) |
+| 設定の場所・保存方法を確認する | [設定画面](settings_ja.md) |
 | ZIP・検査結果を確認する | [配布ファイル](release_ja.md) |
 | 雨衣の音声とMMDを使う | [基準構成の設定](reference_setup_ja.md) |
 | AIの接続先を設定する | [LLM設定](providers_ja.md) |

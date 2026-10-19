@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import re
 import tempfile
+from contextlib import suppress
 from dataclasses import dataclass, field
 from json import dumps as json_dumps
 from pathlib import Path
@@ -14,9 +15,21 @@ import yaml
 from dotenv import load_dotenv
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator, model_validator
 
+from multi_llm_companion.environment import (
+    EnvironmentSettings,
+    EnvironmentSettingsError,
+    environment_store,
+    validate_connection_url,
+    validate_voice,
+)
+
 
 class ConfigError(RuntimeError):
     """利用者に日本語で示せる設定エラー。"""
+
+
+class EnvironmentSetupRequired(ConfigError):
+    """会話機能の起動前に、環境設定から修正できるエラー。"""
 
 
 class AppConfig(BaseModel):
@@ -597,6 +610,7 @@ class RuntimeConfig:
     audio: AudioConfig = field(default_factory=AudioConfig)
     memory: MemoryConfig = field(default_factory=MemoryConfig)
     avatar: AvatarConfig = field(default_factory=AvatarConfig)
+    environment: EnvironmentSettings = field(default_factory=EnvironmentSettings, repr=False)
 
 
 def _read_yaml(path: Path) -> dict[str, Any]:
@@ -635,13 +649,22 @@ def _environment_value(variable_name: str) -> str:
     return os.getenv(variable_name, "").strip()
 
 
-def resolve_provider(name: str, config: ProviderConfig) -> ResolvedProviderConfig:
-    """環境変数名から接続値を取得する。"""
+def resolve_provider(
+    name: str, config: ProviderConfig, environment: EnvironmentSettings | None = None
+) -> ResolvedProviderConfig:
+    """選んだ方式だけから接続値を取得する。"""
 
     implementation = config.provider.lower()
-    base_url = _environment_value(config.base_url_env)
-    api_key = _environment_value(config.api_key_env)
-    model = _environment_value(config.model_env)
+    use_environment = environment is None or environment.use_environment
+    if use_environment:
+        base_url = _environment_value(config.base_url_env)
+        api_key = _environment_value(config.api_key_env)
+        model = _environment_value(config.model_env)
+    else:
+        values = environment.providers.get(name)
+        base_url = values.base_url if values else ""
+        api_key = values.api_key if values else ""
+        model = values.model if values else ""
 
     if implementation == "mock":
         return ResolvedProviderConfig(
@@ -660,16 +683,25 @@ def resolve_provider(name: str, config: ProviderConfig) -> ResolvedProviderConfi
 
     missing = [
         label
-        for label, variable_name, value in (
-            ("ベースURL", config.base_url_env, base_url),
-            ("APIキー", config.api_key_env, api_key),
-            ("モデル名", config.model_env, model),
+        for label, value in (
+            ("ベースURL", base_url),
+            ("APIキー", api_key),
+            ("モデル名", model),
         )
-        if not variable_name or not value
+        if not value.strip()
     ]
     if missing:
         joined = "、".join(missing)
-        raise ConfigError(f"プロバイダー「{name}」の{joined}が環境変数に設定されていません。")
+        source = "環境変数" if use_environment else "環境設定の画面入力"
+        raise EnvironmentSetupRequired(
+            f"プロバイダー「{name}」の{joined}が{source}に設定されていません。"
+        )
+
+    if not use_environment:
+        try:
+            validate_connection_url(base_url, "LLMの接続先URL")
+        except EnvironmentSettingsError as exc:
+            raise EnvironmentSetupRequired(str(exc)) from None
 
     return ResolvedProviderConfig(
         name=name,
@@ -706,7 +738,17 @@ def load_runtime_config(
 
     selected = providers.providers.get(app.active_provider)
     if selected is None:
-        raise ConfigError(f"使用中プロバイダー「{app.active_provider}」が一覧にありません。")
+        raise EnvironmentSetupRequired(
+            f"使用中プロバイダー「{app.active_provider}」が一覧にありません。"
+            "環境設定で接続先を選び直してください。"
+        )
+
+    try:
+        environment = environment_store(root).load()
+        if not environment.use_environment:
+            validate_voice(environment.voice)
+    except EnvironmentSettingsError as exc:
+        raise EnvironmentSetupRequired(str(exc)) from None
 
     return RuntimeConfig(
         project_root=root,
@@ -714,12 +756,103 @@ def load_runtime_config(
         app=app,
         providers=providers,
         persona=persona,
-        active_provider=resolve_provider(app.active_provider, selected),
+        active_provider=resolve_provider(app.active_provider, selected, environment),
         database_path=_absolute_path(root, app.database_path),
         audio=audio,
         memory=memory,
         avatar=avatar,
+        environment=environment,
     )
+
+
+def load_environment_editor_config(
+    root: Path, app_config_path: Path | None = None
+) -> tuple[ProvidersConfig, AudioConfig, str]:
+    """認証情報がなくても、編集に必要な既存設定だけを読む。"""
+    app = _load_model(app_config_path or root / "local/app.yaml", AppConfig)
+    providers = _load_model(_absolute_path(root, app.providers_config_path), ProvidersConfig)
+    audio_path = _absolute_path(root, app.audio_config_path)
+    audio = _load_model(audio_path, AudioConfig) if audio_path.exists() else AudioConfig()
+    return providers, audio, app.active_provider
+
+
+def save_environment_config(
+    root: Path,
+    settings: EnvironmentSettings,
+    provider_name: str,
+    *,
+    app_config_path: Path | None = None,
+    providers: ProvidersConfig | None = None,
+    expected_providers: ProvidersConfig | None = None,
+) -> None:
+    """接続先一覧と保護済み設定を保存し、失敗時は元のファイルへ戻す。"""
+    app_path = app_config_path or root / "local/app.yaml"
+    raw = _read_yaml(app_path)
+    changes: list[tuple[Path, bytes]] = []
+    if providers is not None:
+        app = _load_model(app_path, AppConfig)
+        providers_path = _absolute_path(root, app.providers_config_path)
+        current = _load_model(providers_path, ProvidersConfig)
+        # 保存予定と同じ一覧なら上書きせず、復元失敗後の再試行も受け付ける。
+        if (
+            expected_providers is not None
+            and current != expected_providers
+            and current != providers
+        ):
+            raise ConfigError(
+                "接続先の一覧が別の場所で変更されました。この画面を開き直してから編集してください。"
+            )
+        if provider_name not in providers.providers:
+            raise ConfigError("使用するLLM接続先を選んでください。")
+        if current != providers:
+            changes.append(
+                (
+                    providers_path,
+                    yaml.safe_dump(
+                        providers.model_dump(), allow_unicode=True, sort_keys=False
+                    ).encode("utf-8"),
+                )
+            )
+    if raw.get("active_provider", "mock") != provider_name:
+        raw["active_provider"] = provider_name
+        changes.append(
+            (app_path, yaml.safe_dump(raw, allow_unicode=True, sort_keys=False).encode("utf-8"))
+        )
+    staged: list[Path] = []
+    prepared: list[tuple[Path, Path, Path]] = []
+    changed: list[tuple[Path, Path]] = []
+    try:
+        # 全ファイルを準備してから置換し、秘密値の保管を最後に行う。
+        for path, updated in changes:
+            for content in (path.read_bytes(), updated):
+                with tempfile.NamedTemporaryFile(dir=path.parent, delete=False) as stream:
+                    staged.append(Path(stream.name))
+                    stream.write(content)
+                    stream.flush()
+                    os.fsync(stream.fileno())
+            prepared.append((path, staged[-2], staged[-1]))
+        for path, backup, updated_path in prepared:
+            os.replace(updated_path, path)
+            changed.append((path, backup))
+        environment_store(root).save(settings)
+    except (OSError, EnvironmentSettingsError):
+        restore_failed = False
+        for path, backup in reversed(changed):
+            try:
+                os.replace(backup, path)
+            except OSError:
+                restore_failed = True
+        if restore_failed:
+            raise ConfigError(
+                "環境設定の保存と接続先の復元に失敗しました。アプリを再起動する前に、"
+                "保存先の権限を確認し、この画面を閉じずに保存をやり直してください。"
+                "閉じた場合は、開き直して接続先を選び直して保存してください。"
+            ) from None
+        raise ConfigError("環境設定を保存できませんでした。変更は反映されていません。") from None
+    finally:
+        for path in staged:
+            with suppress(OSError):
+                path.unlink(missing_ok=True)
 
 
 def save_persona_config(path: Path, persona: PersonaConfig, *, expected: PersonaConfig) -> None:

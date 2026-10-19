@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
+from pathlib import Path
 from typing import Protocol
 
 from multi_llm_companion.config import PersonaConfig
@@ -475,6 +476,10 @@ class ChatBackend(Protocol):
     def provider_names(self) -> list[str]: ...
 
     def current_provider_name(self) -> str: ...
+
+    def environment_settings_context(self) -> tuple[Path, str]: ...
+
+    def environment_app_config_path(self) -> Path: ...
 
     def persona_settings(self) -> PersonaConfig: ...
 

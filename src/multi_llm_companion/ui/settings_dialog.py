@@ -1,4 +1,4 @@
-"""使用するプロバイダーを選ぶ設定画面。"""
+"""マイクと音声認識の設定画面。"""
 
 from __future__ import annotations
 
@@ -21,29 +21,21 @@ from multi_llm_companion.ui.models import SpeechSettings
 class SettingsDialog(QDialog):
     def __init__(
         self,
-        provider_names: list[str],
-        current_provider: str,
         speech_settings: SpeechSettings,
         parent: QWidget | None = None,
     ) -> None:
         super().__init__(parent)
-        self.setWindowTitle("設定")
+        self.setWindowTitle("マイクの設定")
 
         explanation = QLabel(
-            "使用するLLM接続先を選びます。APIキーはこの画面や設定ファイルには保存しません。"
+            "音声を文字にする方式とマイクを選びます。保存するとすぐ反映され、次の起動時も引き継ぎます。"
+            "AIや読み上げ音声の接続先は、設定の「環境設定」で変更できます。"
         )
         explanation.setWordWrap(True)
-
-        self.provider_combo = QComboBox()
-        self.provider_combo.addItems(provider_names)
-        index = self.provider_combo.findText(current_provider)
-        if index >= 0:
-            self.provider_combo.setCurrentIndex(index)
 
         form = QFormLayout()
         form.setRowWrapPolicy(QFormLayout.RowWrapPolicy.WrapLongRows)
         form.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.AllNonFixedFieldsGrow)
-        form.addRow("プロバイダー:", self.provider_combo)
 
         self.engine_combo = QComboBox()
         self.engine_combo.addItem("Whisper（高精度・標準）", "whisper")
@@ -61,7 +53,7 @@ class SettingsDialog(QDialog):
         if device_index >= 0:
             self.microphone_combo.setCurrentIndex(device_index)
         form.addRow("使用するマイク:", self.microphone_combo)
-        for combo in (self.provider_combo, self.engine_combo, self.microphone_combo):
+        for combo in (self.engine_combo, self.microphone_combo):
             combo.setSizeAdjustPolicy(
                 QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon
             )
@@ -125,9 +117,6 @@ class SettingsDialog(QDialog):
         layout.addStretch()
         root.addWidget(buttons)
         _fit_dialog(self, 550, 570)
-
-    def selected_provider(self) -> str:
-        return self.provider_combo.currentText()
 
     def selected_speech_engine(self) -> str:
         return str(self.engine_combo.currentData())

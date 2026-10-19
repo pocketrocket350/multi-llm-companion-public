@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import html
+import math
 import re
 import time
 from dataclasses import replace
@@ -25,8 +26,10 @@ from PySide6.QtWidgets import (
     QApplication,
     QCheckBox,
     QDialog,
+    QDoubleSpinBox,
     QFileDialog,
     QGridLayout,
+    QGroupBox,
     QHBoxLayout,
     QLabel,
     QLineEdit,
@@ -44,7 +47,9 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from multi_llm_companion.config import ConfigError
 from multi_llm_companion.domain import ConversationState
+from multi_llm_companion.environment import EnvironmentSettingsError
 from multi_llm_companion.integrations.lip_sync_diagnostic import write_lip_sync_trace
 from multi_llm_companion.services.image_sharing import PreparedImage
 from multi_llm_companion.services.proactive import (
@@ -72,10 +77,12 @@ from multi_llm_companion.ui._window_chrome import (
 from multi_llm_companion.ui._windows_ime import _enable_windows_ime
 from multi_llm_companion.ui.avatar_widget import AvatarWidget
 from multi_llm_companion.ui.conversation_view import ConversationView
+from multi_llm_companion.ui.environment_dialog import EnvironmentDialog
 from multi_llm_companion.ui.expression_library_dialog import (
     ExpressionLibraryDialog,
     mouth_shape_for_morph,
 )
+from multi_llm_companion.ui.floating_notice import NOTICE_DEFAULT_SECONDS, FloatingNotice
 from multi_llm_companion.ui.image_attachment import (
     _image_drop_source,
     _ImageDrop,
@@ -362,16 +369,28 @@ class ChatWindow(QMainWindow):
         chat_layout.setSpacing(0)
         self.chat_view = ConversationView()
         chat_layout.addWidget(self.chat_view, 1)
+        self.notice = FloatingNotice(self._left_panel)
+        self.notice.action_requested.connect(self._open_memory_manager)
         composer = QWidget()
         composer.setObjectName("composer")
         compose = QVBoxLayout(composer)
         compose.setContentsMargins(16, 10, 16, 14)
         compose.setSpacing(8)
         self.error_label = QLabel("")
-        self.error_label.setStyleSheet("color: #9B2336; font-weight: bold;")
+        self.error_label.setStyleSheet("color: #87505A; font-size: 13px;")
+        self.error_label.setTextFormat(Qt.TextFormat.PlainText)
         self.error_label.setWordWrap(True)
         self.error_label.hide()
-        compose.addWidget(self.error_label)
+        self.dismiss_error_button = QPushButton("×")
+        self.dismiss_error_button.setAccessibleName("エラー表示を閉じる")
+        self.dismiss_error_button.setFixedSize(24, 24)
+        self.dismiss_error_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.dismiss_error_button.clicked.connect(self._clear_error)
+        self.dismiss_error_button.hide()
+        error_row = QHBoxLayout()
+        error_row.addWidget(self.error_label, 1)
+        error_row.addWidget(self.dismiss_error_button, 0, Qt.AlignmentFlag.AlignTop)
+        compose.addLayout(error_row)
 
         self.activity_panel = QWidget()
         activity = QVBoxLayout(self.activity_panel)
@@ -390,6 +409,8 @@ class ChatWindow(QMainWindow):
         current = QHBoxLayout()
         self.conversation_state_label = QLabel("")
         self.conversation_state_label.setWordWrap(True)
+        for label in (self.conversation_state_label, self.web_activity_label):
+            label.setStyleSheet("color: #576A7D; font-size: 12px;")
         self.stop_voice_button = QPushButton("音声・動作を停止")
         self.stop_voice_button.setEnabled(False)
         self.stop_voice_button.hide()
@@ -481,7 +502,22 @@ class ChatWindow(QMainWindow):
         options_layout.addWidget(tabs)
         self.options_button.clicked.connect(self._open_options)
         pages = []
-        for name in ("会話・音声", "表示", "診断情報"):
+        for name, description in (
+            (
+                "会話",
+                "雨衣のふるまい、記憶、外部への送信を設定します。チェックの変更はすぐ保存されます。",
+            ),
+            ("音声", "マイク入力と音声会話の動作を設定します。チェックの変更はすぐ保存されます。"),
+            ("表示", "ウィンドウと雨衣の見え方を設定します。変更はすぐ反映・保存されます。"),
+            (
+                "環境設定",
+                "AIと読み上げ音声の接続をまとめて設定します。保存した接続設定は再起動後に反映されます。",
+            ),
+            (
+                "診断情報",
+                "接続や音声に問題があるときの確認用情報です。設定を閉じると会話に戻ります。",
+            ),
+        ):
             scroll = QScrollArea()
             scroll.setWidgetResizable(True)
             page = QWidget()
@@ -490,30 +526,50 @@ class ChatWindow(QMainWindow):
             layout.setSpacing(12)
             scroll.setWidget(page)
             tabs.addTab(scroll, name)
+            note = QLabel(description)
+            note.setWordWrap(True)
+            layout.addWidget(note)
             pages.append(layout)
-        general, avatar_settings, diagnostics = pages
-        self.settings_button = QPushButton("LLM接続・マイクの設定")
+        general, audio_settings, avatar_settings, environment_settings, diagnostics = pages
+        self.settings_button = QPushButton("マイクの設定")
+        self.environment_button = QPushButton("LLM・VoiSona Talkの接続設定")
         self.persona_button = QPushButton("人格を編集")
         self.memory_button = QPushButton("記憶を管理")
         self.proactive_button = QPushButton("能動的な話しかけ")
-        for button in (
-            self.persona_button,
-            self.settings_button,
-            self.memory_button,
-            self.proactive_button,
-        ):
-            general.addWidget(button)
+        character = _settings_section(
+            general,
+            "人格と記憶",
+            "性格や会話方針、保存した記憶を管理します。各画面で保存・管理します。",
+        )
+        character.addWidget(self.persona_button)
+        character.addWidget(self.memory_button)
+        proactive = _settings_section(
+            general, "話しかけ", "会話が止まったときに雨衣から話しかけるかを設定します。"
+        )
+        proactive.addWidget(self.proactive_button)
+        microphone = _settings_section(
+            audio_settings,
+            "マイク入力",
+            "音声認識の方式・機器・録音の調整は、保存するとすぐ反映されます。",
+        )
+        microphone.addWidget(self.settings_button)
+        voice_behavior = _settings_section(
+            audio_settings,
+            "音声会話の動作",
+            "読み上げの接続先やボイス名は「環境設定」で変更できます。",
+        )
         self.auto_send_recognition_checkbox = QCheckBox("認識した音声を自動で送信する")
         self.continuous_voice_mode_checkbox = QCheckBox("返答の読み上げ後、次の録音を始める")
         self.hold_to_talk_checkbox = QCheckBox("Spaceを押している間だけ録音")
-        for checkbox in (
-            self.auto_send_recognition_checkbox,
-            self.continuous_voice_mode_checkbox,
-            self.hold_to_talk_checkbox,
-        ):
-            general.addWidget(checkbox)
+        microphone.addWidget(self.auto_send_recognition_checkbox)
+        microphone.addWidget(self.hold_to_talk_checkbox)
+        voice_behavior.addWidget(self.continuous_voice_mode_checkbox)
         self.hold_to_talk_checkbox.setToolTip("入力欄にカーソルがない時だけSpaceで録音します。")
-        general.addWidget(QLabel("Web検索・画像共有"))
+        sharing = _settings_section(
+            general,
+            "Web検索・画像共有",
+            "対応する接続先で、必要な情報を外部サービスへ送ることを許可します。",
+        )
         self.web_permission_checkbox = QCheckBox("Web検索を許可")
         self.web_permission_checkbox.setToolTip(
             "依頼した検索文と現在日時をOpenAIへ送ります（有料）。"
@@ -524,25 +580,78 @@ class ChatWindow(QMainWindow):
         self.image_permission_checkbox = QCheckBox("画像の送信を許可")
         self.web_permission_checkbox.clicked.connect(self._toggle_web_permission)
         self.image_permission_checkbox.clicked.connect(self._toggle_image_permission)
-        general.addWidget(self.web_permission_checkbox)
-        general.addWidget(self.image_permission_checkbox)
+        sharing.addWidget(self.web_permission_checkbox)
+        sharing.addWidget(self.image_permission_checkbox)
         permission_note = QLabel(
             "検索を頼んで送信した時、または画像を添付して送信した時だけ外部へ送ります。"
             "設定の変更はすぐ保存され、次の起動時も引き継ぎます。"
             "接続先・モデルが未対応の機能は使えません。"
         )
         permission_note.setWordWrap(True)
-        general.addWidget(permission_note)
+        sharing.addWidget(permission_note)
         self._refresh_web_permission()
         general.addStretch()
+        audio_settings.addStretch()
 
+        connections = _settings_section(
+            environment_settings,
+            "接続先と認証情報",
+            "使用するLLM、APIキー・URL・モデル名、VoiSona Talkの認証情報を一つの画面で管理します。",
+        )
+        self.connection_source_label = QLabel()
+        self.connection_source_label.setWordWrap(True)
+        connections.addWidget(self.connection_source_label)
+        connections.addWidget(self.environment_button)
+        storage_note = QLabel(
+            "APIキーとパスワードはWindowsで暗号化して保管します。環境変数や .env は書き換えません。"
+        )
+        storage_note.setWordWrap(True)
+        connections.addWidget(storage_note)
+        environment_settings.addStretch()
+
+        window_settings = _settings_section(
+            avatar_settings, "ウィンドウ", "ほかのアプリと並べて使うときの表示を設定します。"
+        )
+        notices = _settings_section(
+            avatar_settings,
+            "フローティング通知",
+            "記憶の保存・確認待ちと、音声停止・返答取消の案内を別々に設定できます。\n"
+            "変更は自動保存されます。チェックを外すと表示中の通知も閉じます。"
+            "表示時間は次の通知から使います。エラーや処理中の表示は対象外です。",
+        )
+        self._notice_controls: dict[str, tuple[QCheckBox, QDoubleSpinBox]] = {}
+        for kind, name in (("memory", "記憶の通知"), ("info", "通常の案内")):
+            row = QHBoxLayout()
+            enabled = QCheckBox(f"{name}を表示")
+            enabled.setChecked(True)
+            seconds = QDoubleSpinBox()
+            seconds.setRange(1.0, 30.0)
+            seconds.setDecimals(1)
+            seconds.setSingleStep(0.5)
+            seconds.setSuffix(" 秒")
+            seconds.setValue(NOTICE_DEFAULT_SECONDS[kind])
+            seconds.setKeyboardTracking(False)
+            seconds.setAccessibleName(f"{name}の表示時間")
+            seconds.setToolTip("1～30秒で設定します。入力後にEnterを押すと反映します。")
+            duration_label = QLabel("表示時間")
+            duration_label.setBuddy(seconds)
+            row.addWidget(enabled, 1)
+            row.addWidget(duration_label)
+            row.addWidget(seconds)
+            notices.addLayout(row)
+            self._notice_controls[kind] = (enabled, seconds)
+        avatar_view = _settings_section(
+            avatar_settings,
+            "雨衣の表示と動き",
+            "表示方向を調整し、登録済みの動きや表情を管理します。",
+        )
         self.rotation_360_checkbox = QCheckBox("モデルを横方向へ続けて回転できるようにする")
         self.rotation_360_checkbox.setToolTip(
             "オフは正面から左右180度まで。オンは境界を越えて何周でも回転できます。"
         )
-        avatar_settings.addWidget(self.rotation_360_checkbox)
+        avatar_view.addWidget(self.rotation_360_checkbox)
         self.always_on_top_checkbox = QCheckBox("ほかのウィンドウより手前に表示する")
-        avatar_settings.addWidget(self.always_on_top_checkbox)
+        window_settings.addWidget(self.always_on_top_checkbox)
         self.reset_camera_button = QPushButton("雨衣を正面に戻す")
         self.motion_library_button = QPushButton("モーションを管理")
         self.expression_library_button = QPushButton("表情を管理")
@@ -551,12 +660,9 @@ class ChatWindow(QMainWindow):
             self.motion_library_button,
             self.expression_library_button,
         ):
-            avatar_settings.addWidget(button)
+            avatar_view.addWidget(button)
         avatar_settings.addStretch()
 
-        note = QLabel("接続や音声に問題があるときの確認用情報です。設定を閉じると会話に戻ります。")
-        note.setWordWrap(True)
-        diagnostics.addWidget(note)
         self.status_panel = QWidget()
         status = QVBoxLayout(self.status_panel)
         status.setContentsMargins(0, 0, 0, 0)
@@ -612,7 +718,7 @@ class ChatWindow(QMainWindow):
         close_options = QPushButton("閉じる")
         close_options.clicked.connect(self.options_dialog.close)
         options_layout.addWidget(close_options, alignment=Qt.AlignmentFlag.AlignRight)
-        _fit_dialog(self.options_dialog, 560, 590)
+        _fit_dialog(self.options_dialog, 680, 650)
         self.avatar_name_label.setText(f"アバター: {self._avatar_display_name}")
         self.setStyleSheet(
             "QMainWindow, QDialog, QWidget#companionRoot, QWidget#transcriptContent {background: #E8F5F9;}"
@@ -627,7 +733,9 @@ class ChatWindow(QMainWindow):
             "QPushButton#microphoneButton {background: #B4F0EB;}"
             "QPushButton#sendButton:disabled, QPushButton#microphoneButton:disabled {background: #E5EEF2;}"
             "QPushButton[iconOnly=true]:checked {background: #D8EEF6; border-color: #3D65C6;}"
-            "QTextEdit, QListWidget, QComboBox {background: #FCFEFF; border: 1px solid #C7E4F0; border-radius: 8px; padding: 8px;}"
+            "QTextEdit, QListWidget, QComboBox, QLineEdit, QSpinBox, QDoubleSpinBox {background: #FCFEFF; border: 1px solid #C7E4F0; border-radius: 8px; padding: 8px;}"
+            "QGroupBox {border: 1px solid #C7E4F0; border-radius: 8px; margin-top: 12px; padding-top: 12px;}"
+            "QGroupBox::title {subcontrol-origin: margin; left: 12px; padding: 0 4px;}"
             "QScrollArea#conversationView {background: #E8F5F9; border: none;}"
             "QSplitter::handle {background: #D8EEF6;}"
             "QSplitter::handle:hover {background: #A1C9F0;}"
@@ -642,9 +750,17 @@ class ChatWindow(QMainWindow):
 
     def _open_options(self) -> None:
         self._refresh_web_permission()
+        self._refresh_connection_source()
         self.options_dialog.show()
         self.options_dialog.raise_()
         self.options_dialog.activateWindow()
+
+    def _refresh_connection_source(self) -> None:
+        _, source = self._backend.environment_settings_context()
+        self.connection_source_label.setText(
+            f"現在使用中: {self._backend.current_provider_name()} / {source}\n"
+            "接続先の選択と入力値は、保存してアプリを起動し直すと切り替わります。"
+        )
 
     def _sync_activity_controls(self) -> None:
         external = self._web_turn_active and self._thread is not None
@@ -681,6 +797,7 @@ class ChatWindow(QMainWindow):
         self.new_button.clicked.connect(self._start_new_conversation)
         self.delete_button.clicked.connect(self._delete_current_conversation)
         self.settings_button.clicked.connect(self._open_settings)
+        self.environment_button.clicked.connect(self._open_environment_settings)
         self.persona_button.clicked.connect(self._open_persona_settings)
         self.memory_button.clicked.connect(self._open_memory_manager)
         self.proactive_button.clicked.connect(self._open_proactive_settings)
@@ -712,6 +829,13 @@ class ChatWindow(QMainWindow):
         self._voice_pose_timeout.timeout.connect(self._start_pose_ready_voice_output)
         self.stop_voice_button.clicked.connect(self._stop_voice_output)
         self.always_on_top_checkbox.toggled.connect(self._set_always_on_top)
+        for kind, (enabled, seconds) in self._notice_controls.items():
+            enabled.toggled.connect(
+                lambda _checked, kind=kind: self._update_notice_preferences(kind)
+            )
+            seconds.valueChanged.connect(
+                lambda _seconds, kind=kind: self._update_notice_preferences(kind)
+            )
         self._voice_state_timer.timeout.connect(self._on_voice_state_timer)
         self._proactive_timer.timeout.connect(self._on_proactive_timer)
 
@@ -1321,6 +1445,8 @@ class ChatWindow(QMainWindow):
         self._sync_activity_controls()
         if state == previous:
             return
+        if state == ConversationState.INTERRUPTED:
+            self.notice.show_notice("音声を停止しました。")
         write_lip_sync_trace(
             "companion",
             "conversation_state_transition",
@@ -1423,6 +1549,9 @@ class ChatWindow(QMainWindow):
             and isinstance(watched, QWidget)
             and watched is not self.input_edit
             and not self.input_edit.isAncestorOf(watched)
+            and watched is not self.notice
+            and not self.notice.isAncestorOf(watched)
+            and watched is not self.dismiss_error_button
         ):
             self.input_edit.clearFocus()
         if (
@@ -1655,7 +1784,7 @@ class ChatWindow(QMainWindow):
                 self._show_error("画像共有にはOpenAI公式APIへの接続が必要です。")
                 return
             if not self._backend.image_sharing_enabled():
-                self._show_error("画像送信はオフです。設定の「会話・音声」から許可できます。")
+                self._show_error("画像送信はオフです。設定の「会話」から許可できます。")
                 return
         research_turn = attached is None and getattr(self._backend, "_uses_research_flow", False)
         query = self._web_query(text) if attached is None and not research_turn else ""
@@ -1967,7 +2096,7 @@ class ChatWindow(QMainWindow):
             )
             return False
         if not self._backend.web_search_enabled():
-            self._show_error("Web検索はオフです。設定の「会話・音声」から許可できます。")
+            self._show_error("Web検索はオフです。設定の「会話」から許可できます。")
             return False
         query = self._web_query(text)
         if not query:
@@ -2001,6 +2130,8 @@ class ChatWindow(QMainWindow):
         self.web_activity_label.setText("取消済み（通信の終了待ち）")
         self.web_activity_label.setVisible(self._thread is not None)
         self.web_cancel_button.hide()
+
+        self.notice.show_notice("検索・返答を取り消しました。")
 
     def _append_assistant_chunk(self, generation: int, chunk: str) -> None:
         if generation != self._stream_generation or not chunk or not self._messages:
@@ -2288,6 +2419,7 @@ class ChatWindow(QMainWindow):
             self._messages.pop()
         self._reset_stream_voice_state()
         self._render_messages()
+        self.notice.show_notice("返答を取り消しました。")
 
     def _message_failed(self, generation: int, message: str) -> None:
         if generation != self._stream_generation:
@@ -2417,26 +2549,50 @@ class ChatWindow(QMainWindow):
                 self._proactive_timer.start()
             self.options_dialog.show()
 
+    def _open_environment_settings(self) -> None:
+        if self._busy or self._proactive_thread is not None:
+            return
+        self.options_dialog.hide()
+        timer_active = self._proactive_timer.isActive()
+        self._proactive_timer.stop()
+        try:
+            root, source = self._backend.environment_settings_context()
+            source = f"{self._backend.current_provider_name()} / {source}"
+            dialog = EnvironmentDialog(
+                root,
+                self,
+                running_source=source,
+                app_config_path=self._backend.environment_app_config_path(),
+            )
+            if dialog.exec() == EnvironmentDialog.DialogCode.Accepted:
+                QMessageBox.information(
+                    self,
+                    "環境設定を保存しました",
+                    "アプリを終了し、もう一度起動してください。再起動までは現在の接続設定を使います。",
+                )
+            dialog.deleteLater()
+        except (ConfigError, EnvironmentSettingsError) as exc:
+            self._show_error(str(exc))
+        finally:
+            self._proactive.note_user_activity(datetime.now())
+            if timer_active:
+                self._proactive_timer.start()
+            self.options_dialog.show()
+
     def _open_settings(self) -> None:
         if self._busy or self._proactive_thread is not None:
             return
         self.options_dialog.hide()
         dialog = SettingsDialog(
-            self._backend.provider_names(),
-            self._backend.current_provider_name(),
             self._backend.speech_settings(),
             self,
         )
         accepted = dialog.exec() == SettingsDialog.DialogCode.Accepted
         dialog.deleteLater()
+        self.options_dialog.show()
         if not accepted:
             return
-        selected = dialog.selected_provider()
         try:
-            if selected != self._backend.current_provider_name():
-                self._backend.change_provider(selected)
-                self._clear_attachment()
-                self._refresh_web_permission()
             current_audio = self._backend.speech_settings()
             selected_engine = dialog.selected_speech_engine()
             selected_microphone = dialog.selected_microphone()
@@ -2458,7 +2614,7 @@ class ChatWindow(QMainWindow):
                     *selected_turn_settings,
                 )
         except Exception as exc:
-            self._show_error(str(exc) or "プロバイダーを変更できませんでした。")
+            self._show_error(str(exc) or "マイクの設定を変更できませんでした。")
             return
         self._clear_error()
         self._update_usage_label()
@@ -2472,6 +2628,7 @@ class ChatWindow(QMainWindow):
         dialog = ProactiveSettingsDialog(self._proactive_settings(), self)
         accepted = dialog.exec() == ProactiveSettingsDialog.DialogCode.Accepted
         dialog.deleteLater()
+        self.options_dialog.show()
         if not accepted:
             return
         self._apply_proactive_settings(dialog.selected_settings())
@@ -2502,11 +2659,15 @@ class ChatWindow(QMainWindow):
     def _open_memory_manager(self) -> None:
         if self._busy:
             return
+        restore_options = self.options_dialog.isVisible()
+        self.notice.dismiss()
         self.options_dialog.hide()
         dialog = MemoryDialog(self._backend, self)
         dialog.exec()
         dialog.deleteLater()
         self._update_status_labels()
+        if restore_options:
+            self.options_dialog.show()
 
     def _open_motion_manager(self) -> None:
         """会話出力を止め、本番状態と分離したVMD管理画面を開く。"""
@@ -2638,26 +2799,23 @@ class ChatWindow(QMainWindow):
     def _show_saved_memories(self, memories: list[UiMemory]) -> None:
         """会話本文や読み上げとは別に、保存結果を短く知らせる。"""
 
-        is_auto_approved = all(memory.status == "approved" for memory in memories)
-        heading = "保存した記憶" if is_auto_approved else "確認待ちの記憶"
-        if len(memories) == 1:
-            summary = memories[0].content.replace("\n", " ")[:48]
-            if len(memories[0].content) > 48:
-                summary += "…"
-            self.memory_status_label.setText(
-                f"{heading}: {summary}。記憶の管理から修正・削除できます。"
-                if is_auto_approved
-                else f"{heading}: {summary}。記憶の管理から承認・修正・保存しないを選べます。"
-            )
-            return
-        self.memory_status_label.setText(
-            f"{heading}: {len(memories)} 件。記憶の管理から確認できます。"
-        )
+        approved = sum(memory.status == "approved" for memory in memories)
+        candidates = sum(memory.status == "candidate" for memory in memories)
+        parts = []
+        if approved:
+            parts.append(f"記憶を{approved}件保存しました。")
+        if candidates:
+            parts.append(f"記憶の候補が{candidates}件あります（確認待ち）。")
+        if parts:
+            # 個人情報の本文を、画面上の通知へ転載しない。
+            self.notice.show_notice("\n".join(parts), kind="memory")
+            self.notice.action_button.setEnabled(not self._busy)
 
     def _clear_turn_memory_feedback(self) -> None:
         """古い世代の記憶表示を、次の会話ターンへ持ち込まない。"""
 
         self._set_used_memories([])
+        self.notice.dismiss()
         memory = self._backend.memory_settings()
         self.memory_status_label.setText(
             "保存した記憶: 使用中" if memory.enabled else "保存した記憶: 停止中"
@@ -2698,6 +2856,7 @@ class ChatWindow(QMainWindow):
         self.attach_image_button.setEnabled(not busy)
         self.settings_button.setEnabled(not busy)
         self.memory_button.setEnabled(not busy)
+        self.notice.action_button.setEnabled(not busy)
         self.proactive_button.setEnabled(not busy)
         self.motion_library_button.setEnabled(not busy and not self._backend.is_listening())
         self.expression_library_button.setEnabled(not busy and not self._backend.is_listening())
@@ -2720,10 +2879,12 @@ class ChatWindow(QMainWindow):
     def _show_error(self, message: str) -> None:
         self.error_label.setText(f"エラー: {message}")
         self.error_label.setVisible(True)
+        self.dismiss_error_button.show()
 
     def _clear_error(self) -> None:
         self.error_label.clear()
         self.error_label.setVisible(False)
+        self.dismiss_error_button.hide()
 
     def closeEvent(self, event: QCloseEvent) -> None:  # noqa: N802
         if self._image_fetches:
@@ -2755,6 +2916,7 @@ class ChatWindow(QMainWindow):
             event.ignore()
             return
         self._backend.stop_speech_recognition()
+        self.notice.dismiss()
         self.options_dialog.close()
         self._clear_attachment()
         QApplication.instance().removeEventFilter(self)
@@ -2808,6 +2970,31 @@ class ChatWindow(QMainWindow):
             if callable(setter) and self._settings.contains(key):
                 setter(self._settings.value(key, True, type=bool))
         self._refresh_web_permission()
+        for kind, (enabled, seconds) in self._notice_controls.items():
+            key = f"notifications/{kind}"
+            default = NOTICE_DEFAULT_SECONDS[kind]
+            try:
+                duration = float(self._settings.value(f"{key}/seconds", default))
+            except (TypeError, ValueError, OverflowError):
+                duration = default
+            if not math.isfinite(duration):
+                duration = default
+            enabled.blockSignals(True)
+            seconds.blockSignals(True)
+            enabled.setChecked(self._settings.value(f"{key}/enabled", True, type=bool))
+            seconds.setValue(duration)
+            enabled.blockSignals(False)
+            seconds.blockSignals(False)
+            self._update_notice_preferences(kind, save=False)
+
+    def _update_notice_preferences(self, kind: str, *, save: bool = True) -> None:
+        enabled, seconds = self._notice_controls[kind]
+        seconds.setEnabled(enabled.isChecked())
+        self.notice.configure(kind, enabled=enabled.isChecked(), seconds=seconds.value())
+        if save:
+            self._settings.setValue(f"notifications/{kind}/enabled", enabled.isChecked())
+            self._settings.setValue(f"notifications/{kind}/seconds", seconds.value())
+            self._settings.sync()
 
     def _save_preference(self, key: str, value: bool | str) -> None:
         self._settings.setValue(key, value)
@@ -2818,6 +3005,18 @@ class ChatWindow(QMainWindow):
         self._save_splitter_preferences()
         self._settings.setValue("always_on_top", self.always_on_top_checkbox.isChecked())
         self._settings.sync()
+
+
+def _settings_section(parent: QVBoxLayout, title: str, description: str) -> QVBoxLayout:
+    group = QGroupBox(title)
+    layout = QVBoxLayout(group)
+    layout.setContentsMargins(14, 18, 14, 14)
+    layout.setSpacing(10)
+    note = QLabel(description)
+    note.setWordWrap(True)
+    layout.addWidget(note)
+    parent.addWidget(group)
+    return layout
 
 
 def _format_usage_summary(summary: UiTokenUsageSummary) -> str:
