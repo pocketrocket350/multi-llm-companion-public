@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 
 from multi_llm_companion.config import AudioConfig, AvatarConfig
+from multi_llm_companion.environment import EnvironmentSettings
 
 from .base import AvatarControlPort, SpeechRecognitionPort, VoiceOutputPort
 from .mmd_renderer import (
@@ -63,17 +64,27 @@ def build_speech_recognizer(
     )
 
 
-def build_voice_output(config: AudioConfig) -> VoiceOutputPort:
+def build_voice_output(
+    config: AudioConfig, *, environment: EnvironmentSettings | None = None
+) -> VoiceOutputPort:
     settings = config.voice_output
-    if not settings.enabled:
+    manual = environment is not None and not environment.use_environment
+    enabled = environment.voice.enabled if manual else settings.enabled
+    if not enabled:
         return NullVoiceOutput()
     if settings.provider.lower() != "voisona_talk":
         return NullVoiceOutput(f"未対応の音声出力: {settings.provider}")
     return VoiSonaTalkVoiceOutput(
-        base_url=settings.base_url,
-        username=os.getenv(settings.username_env, "").strip(),
-        password=os.getenv(settings.password_env, "").strip(),
-        voice_name=os.getenv(settings.voice_name_env, "").strip(),
+        base_url=environment.voice.base_url if manual else settings.base_url,
+        username=environment.voice.username
+        if manual
+        else os.getenv(settings.username_env, "").strip(),
+        password=environment.voice.password
+        if manual
+        else os.getenv(settings.password_env, "").strip(),
+        voice_name=environment.voice.voice_name
+        if manual
+        else os.getenv(settings.voice_name_env, "").strip(),
         language=settings.language,
         timeout=settings.timeout,
         playback_preroll=settings.playback_preroll,

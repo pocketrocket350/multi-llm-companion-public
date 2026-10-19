@@ -124,6 +124,7 @@ class ChatService:
         self._engine_contract = engine_contract
         self._dialogue_director = dialogue_director
         self._last_emotion_state: EmotionState | None = None
+        self._published_response: tuple[AssistantResponse, EmotionState | None] | None = None
         self._last_context_status = "直近 0 件"
         self._current_conversation_id: str | None = None
         self._send_lock = threading.Lock()
@@ -193,6 +194,11 @@ class ChatService:
     def last_emotion_state(self) -> EmotionState | None:
         return self._last_emotion_state
 
+    def _clear_last_response(self) -> None:
+        self._published_response = None
+        self.last_response = None
+        self._last_emotion_state = None
+
     @property
     def context_status(self) -> str:
         """直近のProvider送信範囲を、画面用の短い文で返す。"""
@@ -211,6 +217,7 @@ class ChatService:
 
         with self._state_lock:
             self._stream_generation += 1
+            self._clear_last_response()
 
     def set_web_search_enabled(self, enabled: bool) -> None:
         """無効化は保存前の世代検査にも直ちに反映する。"""
@@ -219,6 +226,7 @@ class ChatService:
             self.web_search.set_enabled(enabled)
             if not enabled and (self._searching or self._research_phase):
                 self._stream_generation += 1
+                self._clear_last_response()
 
     def invalidate_proactive_turn(self) -> None:
         """進行中の能動発話を、Provider完了後も保存・表示させない。"""
@@ -226,6 +234,7 @@ class ChatService:
         with self._state_lock:
             self._proactive_generation += 1
             if self._proactive_request is not None:
+                self._clear_last_response()
                 # 解放するのは現在の能動要求が所有するロックだけ。
                 self._proactive_request = None
                 self._send_lock.release()
@@ -235,6 +244,7 @@ class ChatService:
             self.image_sharing.enabled = enabled
             if not enabled and self._image_processing:
                 self._stream_generation += 1
+                self._clear_last_response()
 
     def _check_image_permission(self, image: PreparedImage | None) -> None:
         if image is not None and (
@@ -277,6 +287,7 @@ class ChatService:
         conversation = self._repository.create_conversation(title)
         with self._state_lock:
             self._current_conversation_id = conversation.id
+            self._clear_last_response()
         return conversation
 
     def list_conversations(self, *, limit: int | None = None) -> list[Conversation]:
@@ -290,6 +301,7 @@ class ChatService:
             raise ConversationNotFoundError("指定された会話履歴が見つかりません。")
         with self._state_lock:
             self._current_conversation_id = conversation_id
+            self._clear_last_response()
         return self._repository.list_messages(conversation_id)
 
     def get_current_messages(self) -> list[StoredMessage]:
@@ -309,6 +321,7 @@ class ChatService:
         if deleted and target_id == self.current_conversation_id:
             with self._state_lock:
                 self._current_conversation_id = None
+                self._clear_last_response()
         return deleted
 
     def delete_all_conversations(self) -> int:
@@ -318,6 +331,7 @@ class ChatService:
         deleted = self._repository.delete_all_conversations()
         with self._state_lock:
             self._current_conversation_id = None
+            self._clear_last_response()
         return deleted
 
     def health_check(self) -> bool:
@@ -336,7 +350,7 @@ class ChatService:
             with self._state_lock:
                 self._last_stream_was_invalidated = False
                 generation = self._stream_generation
-                self.last_response = None
+                self._clear_last_response()
                 self.last_usage = None
             self._check_image_permission(image)
             self._image_processing = image is not None
@@ -402,7 +416,7 @@ class ChatService:
             with self._state_lock:
                 generation = self._stream_generation
                 self._last_stream_was_invalidated = False
-                self.last_response = None
+                self._clear_last_response()
                 self.last_usage = None
                 if cancelled is not None and cancelled():
                     self._last_stream_was_invalidated = True
@@ -511,6 +525,8 @@ class ChatService:
                 if not self._send_lock.acquire(blocking=False):
                     raise ChatBusyError("回答を処理中です。完了してから送信してください。")
                 self._proactive_request = request
+                self._clear_last_response()
+                self.last_usage = None
                 generation = self._proactive_generation
                 if self._memory_service is not None:
                     self._memory_service.clear_last_candidates()
@@ -714,8 +730,6 @@ class ChatService:
         if response.memory_updates is not None:
             # 更新案はこのターンでだけ扱い、棄却した案も会話履歴へ持ち越さない。
             response = response.model_copy(update={"memory_updates": []})
-        self.last_response = response
-        self.last_usage = usage
         self._repository.add_message(
             conversation_id,
             "assistant",
@@ -724,6 +738,7 @@ class ChatService:
             usage=usage,
         )
         self._avatar_controller.apply_response(response)
+        state = None
         if self._emotion_service is not None:
             state = self._emotion_service.apply_response(conversation_id, response)
             self._last_emotion_state = state
@@ -735,6 +750,10 @@ class ChatService:
                 conversation_id,
                 turn=self._memory_turn,
             )
+        self.last_usage = usage
+        self.last_response = response
+        # UIは保存ロックを待たず、同じ回答の感情だけを一度に読み取る。
+        self._published_response = (response, state)
         return response
 
     def _image_reply(
@@ -908,7 +927,7 @@ class ChatService:
         """確認した失敗理由だけを発言にし、例外本文や内部値は読み上げない。"""
         detail = str(error)
         if "オフ" in detail:
-            speech = "今はWeb検索がオフになっているから、調べられないんだ。設定の「会話・音声」でオンにできるよ。"
+            speech = "今はWeb検索がオフになっているから、調べられないんだ。設定の「会話」でオンにできるよ。"
         elif "秘密情報" in detail:
             speech = "この内容は、そのまま検索へ送れないんだ。秘密の情報を除いて、調べたい対象を短く教えてもらえるかな。"
         elif "未対応" in detail or "対応していません" in detail or "受け付けられません" in detail:
@@ -1120,7 +1139,7 @@ class ChatService:
             else ""
         )
         if not self.web_search.enabled:
-            search_capability = "Web検索は設定でオフ。利用者は設定の「会話・音声」で許可できる。"
+            search_capability = "Web検索は設定でオフ。利用者は設定の「会話」で許可できる。"
         elif self.web_search.client is None:
             search_capability = "現在の接続設定ではアプリのWeb検索経路を利用できない。"
         else:

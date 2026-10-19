@@ -138,7 +138,11 @@ class ApplicationBackend:
         self._memory_service = MemoryService(repository, runtime.memory)
         self._emotion_service = EmotionService(repository)
         speech_recognizer = build_speech_recognizer(runtime.audio, runtime.project_root)
-        voice_output = build_voice_output(runtime.audio)
+        voice_output = (
+            build_voice_output(runtime.audio)
+            if runtime.environment.use_environment
+            else build_voice_output(runtime.audio, environment=runtime.environment)
+        )
         motion_actions = _supported_motion_actions(
             runtime,
             audio_available=voice_output.is_available,
@@ -330,10 +334,10 @@ class ApplicationBackend:
     def _voice_expression(self) -> ExpressionChannel | None:
         """確定済みの回答と感情から、音声専用の表現強度を得る。"""
 
-        response = self._service.last_response
-        state = self._service.last_emotion_state
-        if response is None or state is None:
+        published = self._service._published_response
+        if published is None or published[1] is None:
             return None
+        response, state = published
         intent = self._expression_policy.normalize(response)
         intent = self._expression_policy.apply_emotion_state(intent, state.emotion, state.intensity)
         return intent.outputs.voice if intent.outputs is not None else None
@@ -369,7 +373,8 @@ class ApplicationBackend:
         self._service.voice_output.finish_stream()
 
     def _spoken_text(self, text: str) -> str:
-        response = self._service.last_response
+        published = self._service._published_response
+        response = published[0] if published else None
         return re.sub(r"\[S\d+\]", "", text) if response and response.sources else text
 
     def is_speech_recognition_available(self) -> bool:
@@ -451,6 +456,13 @@ class ApplicationBackend:
 
     def current_provider_name(self) -> str:
         return self._active_provider_name
+
+    def environment_settings_context(self) -> tuple[Path, str]:
+        source = "環境変数" if self._runtime.environment.use_environment else "画面入力"
+        return self._runtime.project_root, source
+
+    def environment_app_config_path(self) -> Path:
+        return self._runtime.app_config_path
 
     def memory_settings(self) -> MemorySettings:
         return MemorySettings(
@@ -1076,7 +1088,7 @@ class ApplicationBackend:
             raise ApplicationError(f"プロバイダー「{provider_name}」が見つかりません。")
 
         try:
-            resolved = resolve_provider(provider_name, configured)
+            resolved = resolve_provider(provider_name, configured, self._runtime.environment)
             new_provider = build_provider(resolved)
         except (ConfigError, ProviderError) as exc:
             raise ApplicationError(str(exc)) from exc
@@ -1155,7 +1167,8 @@ class ApplicationBackend:
             response,
             conversation_state=ConversationState.REACTING,
         )
-        emotion_state = self._service.last_emotion_state
+        published = self._service._published_response
+        emotion_state = published[1] if published and published[0] is response else None
         if emotion_state is not None:
             intent = self._expression_policy.apply_emotion_state(
                 intent,
@@ -1184,7 +1197,7 @@ class ApplicationBackend:
             ]
             if include_memory_feedback
             else [],
-            emotion_state=_to_ui_emotion_state(self._service.last_emotion_state),
+            emotion_state=_to_ui_emotion_state(emotion_state),
             expression_intensity=outputs.expression.intensity,
             gesture_intensity=outputs.gesture.intensity,
             gaze_intensity=outputs.gaze.intensity,
@@ -1193,10 +1206,15 @@ class ApplicationBackend:
         )
 
     def close(self) -> None:
-        self._service.close()
-        close_voice = getattr(self._service.voice_output, "close", None)
-        if callable(close_voice):
-            close_voice()
+        try:
+            self._service.close()
+        finally:
+            close_voice = getattr(self._service.voice_output, "close", None)
+            if callable(close_voice):
+                close_voice()
+            wait_for_cleanup = getattr(self._service.voice_output, "_wait_for_cleanup", None)
+            if callable(wait_for_cleanup):
+                wait_for_cleanup()
 
 
 def _system_prompt(runtime: RuntimeConfig) -> str:

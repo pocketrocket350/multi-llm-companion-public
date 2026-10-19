@@ -31,6 +31,8 @@ Windows 11とPython 3.12を使います。セットアップ時は、再実行�
 
 ## 次の設定
 
+APIキーやパスワードは **設定 → 環境設定 → LLM・VoiSona Talkの接続設定** で入力できます。**環境変数で設定** のチェックを外し、必要な値を入れて保存し、アプリを再起動します。[画面から設定する詳しい手順](environment_settings_ja.md) へ進んでください。
+
 - AIと会話する：[LLM接続](providers_ja.md)
 - 雨衣の音声・MMDを使う：[基準構成の設定](reference_setup_ja.md)
 - 履歴、検索、画像など：[会話の操作](conversation_ja.md)

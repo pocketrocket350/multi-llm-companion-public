@@ -4,7 +4,9 @@ Windowsで、文字・音声とMMDアバターを使って会話するPythonア�
 
 **最初はAPIキー不要のMockで起動できます。** Mockは動作確認用の固定応答です。AIとの会話には外部LLMの設定が必要です。
 
-**正式版 v1.0.1（修正版）**：[ダウンロード](https://github.com/pocketrocket350/multi-llm-companion-public/releases/tag/v1.0.1)
+**正式版 v1.1.0（設定・通知の拡張）**：[ダウンロード](https://github.com/pocketrocket350/multi-llm-companion-public/releases/tag/v1.1.0)
+
+既存利用者は [v1.1.0への更新手順](docs/update_ja.md) を先に確認してください。
 
 ## はじめる
 
@@ -20,6 +22,8 @@ Windows 11、Python 3.12 x64、初回セットアップ用のインターネッ�
 
 ## できること
 
+- 設定画面での接続先管理、保護したAPIキー入力、接続テスト、ボイス一覧
+- 記憶・通常案内のフローティング通知と、種類別の表示・時間設定
 - 会話の保存・再開、人格設定、長期記憶の確認・編集
 - マイク入力、VoiSona Talkによる読み上げ、表情・口パク・VMD動作
 - 許可した場合のWeb検索・画像共有・能動的な話しかけ

@@ -558,7 +558,7 @@ class WebSearchSession:
                 return None
             if not self.enabled:
                 raise WebSearchError(
-                    "Web検索はオフです。設定の「会話・音声」から許可できます。検索はしていません。"
+                    "Web検索はオフです。設定の「会話」から許可できます。検索はしていません。"
                 )
             if self.client is None:
                 raise WebSearchError("現在の接続先・モデルではWeb検索に対応していません。")

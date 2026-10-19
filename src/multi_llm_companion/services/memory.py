@@ -87,6 +87,12 @@ _VALUE_CORRECTION = re.compile(
     r"(?P<subject>[^。！？、:：]{1,30}?)は(?P<old>[^。！？、]{1,20}?)(?:ではなく|じゃなく)"
     r"(?P<new>[^。！？、]{1,20}?)(?:です|だよ|に訂正|に変更|[。！？]|$)"
 )
+_PERSON_SUBJECT = re.compile(
+    r"(?<![一-龠ァ-ヶーA-Za-z])(?!(?:ユーザー|利用者|私|僕|俺|自分)[はがの])"
+    r"(?P<person>弟|妹|兄|姉|父|母|彼女|友人|友達|友だち|著者|先生|上司|部下|夫|妻|彼|"
+    r"[一-龠ァ-ヶーA-Za-z]{1,20}(?=の(?!話|こと)[^。、,！？!?\n]{1,30}[はが]))"
+    r"(?=は|が|の)"
+)
 _TRANSIENT_STATE = re.compile(
     r"(?:今日は?|今は?|現在|一時的に)?.{0,8}"
     r"(?:悲しい(?!曲|歌|映画|物語|作品|音楽|話)|疲れている|疲れた|落ち込んでいる|落ち込んだ|"
@@ -298,6 +304,19 @@ class MemoryService:
                 + "\n\n【今回の本人発言（引用照合用のデータ）】\n"
                 + json.dumps(user_text, ensure_ascii=False)
             )
+            if _is_forget_request(user_text) and not _is_recent_forget_request(user_text):
+                target = _forget_target(user_text)
+                matches = [
+                    item
+                    for item in self._repository.list_memories()
+                    if _matches_forget_target(target, item.content)
+                ]
+                if len(matches) != 1:
+                    prompt += (
+                        "\n【今回の削除判定】対象を一意に特定できないため、アプリは削除しません。"
+                        "memory_updates=[]。削除した・忘れたとは言わず、"
+                        "人物と項目を一つだけ指定してもらう短い確認をしてください。"
+                    )
             if not self.enabled:
                 prompt += "\n記憶は無効。memory_updates=[]。保存・参照したと断言しない。"
             elif not self.auto_approve_candidates:
@@ -382,7 +401,9 @@ class MemoryService:
                         touched.add(old.id)
                         known.pop(old.id)
                     continue
-                if not update.content:
+                if not update.content or _memory_person(old.content) != _memory_person(
+                    update.content
+                ):
                     continue
             # 同義語の判断はLLMに任せ、ここでは完全に同じ事実の重複だけを止める。
             if any(
@@ -444,7 +465,8 @@ class MemoryService:
             replacements = [
                 memory
                 for memory in known
-                if correction["old"].strip() in memory.content
+                if _memory_person(correction["subject"] + "は") == _memory_person(memory.content)
+                and correction["old"].strip() in memory.content
                 and (
                     subject in memory.content.replace("利用者", "ユーザー")
                     or (
@@ -727,15 +749,10 @@ def _semantic_evidence_is_usable(text: str, evidence: str, content: str) -> bool
 def _memory_subject_is_preserved(clause: str, content: str) -> bool:
     """旧候補と意味更新で、第三者の属性を本人へ移す誤りを防ぐ。"""
 
-    third_party = re.search(
-        r"(?P<person>弟|妹|兄|姉|父|母|彼女|友人|友達|友だち|著者|先生|上司|部下|夫|妻|彼)"
-        r"(?:は|が|の(?:趣味|好み|仕事|職業|朝食)(?:は|が))",
-        clause,
-    )
-    if third_party:
-        # 所有表現でも人物を保持し、第三者の属性を本人へ移さない。
-        person = re.escape(third_party["person"])
-        if not re.match(rf"(?:(?:ユーザー|利用者)の)?{person}(?:は|が|の)", content):
+    people = list(_PERSON_SUBJECT.finditer(clause))
+    person = _memory_person(content)
+    if people:
+        if not person:
             # 同じ発言でも、独立した本人申告と一致する候補は残す。
             personal_clauses = re.split(r"[。、,\n]", clause)
             return any(
@@ -743,7 +760,32 @@ def _memory_subject_is_preserved(clause: str, content: str) -> bool:
                 and _personal_fact_from_input(part) == content
                 for part in personal_clauses
             ) and not re.search(r'[「」『』“”"`]', clause)
-    return True
+        # 同じ人物の節だけを根拠にし、別の人物の値を流用しない。
+        candidate = _PERSON_SUBJECT.search(content)
+        value = re.split(r"[はが]", content[candidate.end() :], maxsplit=1)
+        if len(value) != 2:
+            return False
+        value = _normalized_evidence(value[1])
+        for index, match in enumerate(people):
+            if match["person"] != person:
+                continue
+            end = people[index + 1].start() if index + 1 < len(people) else len(clause)
+            local = re.split(r"(?:私|僕|俺|自分)(?:は|が|の)", clause[match.end() : end])[0]
+            local = _normalized_evidence(local)
+            if value and re.search(
+                rf"(?<![一-龠ァ-ヶーA-Za-z0-9]){re.escape(value)}(?![一-龠ァ-ヶーA-Za-z0-9])",
+                local,
+            ):
+                return True
+            if len(value) > 2 and len(_bigrams(value) & _bigrams(local)) >= 2:
+                return True
+        return False
+    return not person
+
+
+def _memory_person(content: str) -> str:
+    match = _PERSON_SUBJECT.search(content)
+    return match["person"] if match else ""
 
 
 def _explicit_memory_candidates(user_text: str) -> list[str]:
@@ -827,19 +869,36 @@ def _is_forget_request(text: str) -> bool:
 
 
 def _is_recent_forget_request(text: str) -> bool:
-    return "さっき" in text or "先ほど" in text
+    return re.fullmatch(r"\s*(?:さっき|先ほど)(?:のこと)?[はを]?忘れて.*", text) is not None
 
 
 def _forget_target(text: str) -> str:
-    if re.fullmatch(r"\s*(?:さっき|先ほど)(?:のこと)?を?忘れ(?:て|たい).*", text):
+    if _is_recent_forget_request(text):
+        return ""
+    # 保持指示や列挙が混ざる依頼は、単一の対象を確認してから扱う。
+    if re.search(
+        r"残|保持|覚えて|[、,。\n]|と|及び|および",
+        text.split("忘れ", 1)[0].replace("のこと", "").replace("なこと", ""),
+    ):
         return ""
     target = re.sub(r"(?:さっき|先ほど|のこと|を)?忘れ(?:て|たい).*", "", text)
     target = re.sub(r"^(?:それ|これ|あれ|記憶|保存したこと)[をは]?", "", target)
-    target = re.sub(r"(?:のこと[はを]?|[はを])$", "", target.strip())
-    return _normalized_evidence(target)
+    target = re.sub(r"(?:[のな]こと[はを]?|[はを])$", "", target.strip())
+    target = re.sub(r"^(?:さっき|先ほど)(?:話した|伝えた|言った)", "", target)
+    return re.sub(r"の好み$", "", target)
 
 
 def _matches_forget_target(target: str, content: str) -> bool:
+    person = _memory_person(target)
+    if person and person != _memory_person(content):
+        return False
+    if (
+        re.match(r"(?:私|僕|俺|自分|ユーザー|利用者)の", target)
+        and not person
+        and _memory_person(content)
+    ):
+        return False
+    target = _normalized_evidence(target)
     normalized_content = _normalized_evidence(content)
     if len(target) == 1:
         # 「青」は消せるが「青山」などの一部には一致させない。
@@ -849,11 +908,7 @@ def _matches_forget_target(target: str, content: str) -> bool:
         )
     if not target or not normalized_content:
         return False
-    if target in normalized_content or normalized_content in target:
-        return True
-    target_bigrams = _bigrams(target)
-    content_bigrams = _bigrams(normalized_content)
-    return len(target_bigrams & content_bigrams) >= 2
+    return target in normalized_content
 
 
 def _is_allowed_memory_candidate(user_text: str, content: str) -> bool:

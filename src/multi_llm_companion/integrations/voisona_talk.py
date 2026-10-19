@@ -101,6 +101,7 @@ class VoiSonaTalkVoiceOutput(VoiceOutputPort):
         self._playback_started = False
         self._pending_text = ""
         self._lock = threading.RLock()
+        self._cleanup_changed = threading.Condition(self._lock)
         # 文単位先読み用の経路。従来の一括発話状態とは分離する。
         self._stream_generation = 0
         self._stream_expression: ExpressionChannel | None = None
@@ -873,6 +874,23 @@ class VoiSonaTalkVoiceOutput(VoiceOutputPort):
             self._is_closed = True
             self.stop()
 
+    def _wait_for_cleanup(self, timeout: float = 3.0) -> bool:
+        """最終終了だけ、遅着受付を含む後始末を期限付きで待つ。"""
+
+        with self._cleanup_changed:
+            completed = self._cleanup_changed.wait_for(
+                lambda: (
+                    self._client_users == 0
+                    and self._cleanup_queue.empty()
+                    and self._cleanup_thread is None
+                    and self._client.is_closed
+                ),
+                timeout=timeout,
+            )
+        if not completed:
+            write_lip_sync_trace("provider", "cleanup_wait_timeout")
+        return completed
+
     @contextmanager
     def _client_operation(self) -> Iterator[bool]:
         """遅着受付の後始末を登録するまで、使用中のHTTP接続を閉じない。"""
@@ -888,6 +906,7 @@ class VoiSonaTalkVoiceOutput(VoiceOutputPort):
                 with self._lock:
                     self._client_users -= 1
                     self._ensure_cleanup_worker()
+                    self._cleanup_changed.notify_all()
 
     def _queue_cleanup(
         self,
@@ -923,6 +942,7 @@ class VoiSonaTalkVoiceOutput(VoiceOutputPort):
                 self._cleanup_thread = None
                 if completed or not self._cleanup_queue.empty():
                     self._ensure_cleanup_worker()
+                self._cleanup_changed.notify_all()
 
     def _drain_cleanup_queue(self) -> None:
         while True:
