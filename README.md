@@ -4,9 +4,9 @@ Windowsで、文字・音声とMMDアバターを使って会話するPythonア�
 
 **最初はAPIキー不要のMockで起動できます。** Mockは動作確認用の固定応答です。AIとの会話には外部LLMの設定が必要です。
 
-**正式版 v1.1.0（設定・通知の拡張）**：[ダウンロード](https://github.com/pocketrocket350/multi-llm-companion-public/releases/tag/v1.1.0)
+**正式版 v1.1.1（記憶・音声処理・キャンセルの修正）**：[ダウンロード](https://github.com/pocketrocket350/multi-llm-companion-public/releases/tag/v1.1.1)
 
-既存利用者は [v1.1.0への更新手順](docs/update_ja.md) を先に確認してください。
+既存利用者は [v1.1.1への更新手順](docs/update_ja.md) を先に確認してください。
 
 ## はじめる
 
