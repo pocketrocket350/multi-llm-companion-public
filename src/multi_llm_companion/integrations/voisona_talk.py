@@ -122,6 +122,7 @@ class VoiSonaTalkVoiceOutput(VoiceOutputPort):
             tuple[tuple[str, ...], tempfile.TemporaryDirectory[str] | None]
         ] = Queue()
         self._cleanup_thread: threading.Thread | None = None
+        self._cleanup_failed = False
 
     @property
     def is_available(self) -> bool:
@@ -874,22 +875,22 @@ class VoiSonaTalkVoiceOutput(VoiceOutputPort):
             self._is_closed = True
             self.stop()
 
-    def _wait_for_cleanup(self, timeout: float = 3.0) -> bool:
-        """最終終了だけ、遅着受付を含む後始末を期限付きで待つ。"""
+    def _wait_for_cleanup(self, timeout: float | None = None) -> bool:
+        """最終終了は後始末を待ち、明示した場合だけ待機を打ち切る。"""
 
         with self._cleanup_changed:
             completed = self._cleanup_changed.wait_for(
                 lambda: (
-                    self._client_users == 0
+                    self._cleanup_thread is None
+                    and self._client_users == 0
                     and self._cleanup_queue.empty()
-                    and self._cleanup_thread is None
-                    and self._client.is_closed
+                    and (self._client.is_closed or self._cleanup_failed)
                 ),
                 timeout=timeout,
             )
         if not completed:
             write_lip_sync_trace("provider", "cleanup_wait_timeout")
-        return completed
+        return completed and not self._cleanup_failed
 
     @contextmanager
     def _client_operation(self) -> Iterator[bool]:
@@ -937,6 +938,10 @@ class VoiSonaTalkVoiceOutput(VoiceOutputPort):
         try:
             self._drain_cleanup_queue()
             completed = True
+        except Exception:
+            with self._lock:
+                self._cleanup_failed = True
+            write_lip_sync_trace("provider", "cleanup_error")
         finally:
             with self._lock:
                 self._cleanup_thread = None
@@ -961,7 +966,9 @@ class VoiSonaTalkVoiceOutput(VoiceOutputPort):
                 for request_uuid in request_uuids:
                     try:
                         self._delete_synthesis(request_uuid)
-                    except (OSError, RuntimeError):
+                    except Exception:
+                        with self._lock:
+                            self._cleanup_failed = True
                         write_lip_sync_trace("provider", "cleanup_error")
             finally:
                 if temp_dir is not None:
@@ -970,17 +977,10 @@ class VoiSonaTalkVoiceOutput(VoiceOutputPort):
                 self._cleanup_queue.task_done()
 
     def _delete_synthesis(self, request_uuid: str) -> None:
-        """終了済みクライアントだけは、削除待ちの非同期処理を安全に終える。"""
+        """削除の失敗を、後始末workerへ返して記録する。"""
 
-        try:
-            self._client.delete(f"{self._base_url}/speech-syntheses/{request_uuid}")
-        except httpx.HTTPError:
-            return
-        except RuntimeError:
-            with self._lock:
-                if self._is_closed:
-                    return
-            raise
+        response = self._client.delete(f"{self._base_url}/speech-syntheses/{request_uuid}")
+        response.raise_for_status()
 
     def _monitor_request(self, request_uuid: str, generation: int) -> None:
         """WAV生成完了を待ち、アプリ管理再生の終了まで監視する。"""

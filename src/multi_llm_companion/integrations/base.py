@@ -335,6 +335,12 @@ class SpeechRecognitionPort(ABC):
         """マイクから音を受け取っている間はTrue。"""
 
     @property
+    def _is_running(self) -> bool:
+        """設定交換前に、停止後も残る処理の有無を確認する。"""
+
+        return self.is_listening
+
+    @property
     @abstractmethod
     def status_text(self) -> str:
         """画面へ表示する短い日本語の状態。"""

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
+from contextlib import AbstractContextManager
 
 from multi_llm_companion.domain import (
     AssistantResponse,
@@ -25,6 +26,11 @@ class StorageError(RuntimeError):
 
 class ConversationRepository(ABC):
     """会話履歴を扱う保存先の共通インターフェース。"""
+
+    def _transaction(self) -> AbstractContextManager[None]:
+        """内部の複数書き込みを一括確定し、失敗時は元に戻す。"""
+
+        raise NotImplementedError("保存先が一括保存に対応していません。")
 
     @abstractmethod
     def create_conversation(self, title: str = "新しい会話") -> Conversation:

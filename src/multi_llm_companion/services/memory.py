@@ -5,6 +5,8 @@ from __future__ import annotations
 import json
 import re
 import threading
+from collections.abc import Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 
@@ -268,15 +270,17 @@ class MemoryService:
                     and not _contains_sensitive_value(item.content)
                 ]
                 related = _topic_candidates(user_text, approved)
+                topic_ids = {item.id for item in _topic_candidates(user_text, relevant)}
+                topic_relevant = [item for item in relevant if item.id in topic_ids]
                 seen: set[int] = set()
                 characters = 0
-                # 語句の関連候補、話題の補完候補、最近の記憶の順に渡す。
-                for memory in [*relevant, *related, *approved]:
+                # 同じ話題の語句候補、話題の補完、その他の語句候補、最近の記憶の順。
+                for memory in [*topic_relevant, *related, *relevant, *approved]:
                     if memory.id in seen or not self._is_current(memory.updated_at):
                         continue
                     if _contains_sensitive_value(memory.content):
                         continue
-                    if len(memories) >= 40:
+                    if len(memories) >= self._config.max_context_memories:
                         break
                     if characters + len(memory.content) > 10000:
                         continue
@@ -293,7 +297,7 @@ class MemoryService:
                 "以下は訂正・変更を反映した現在の保存内容。古い値は置換済み。\n"
                 "『訂正後』『変更後』を尋ねられたら、下記の値がその回答。\n"
                 "変更の日付や理由は記録されていなければ不明。\n"
-                "現在の保存内容（最大40件・合計10000文字）:\n"
+                f"現在の保存内容（最大{self._config.max_context_memories}件・合計10000文字）:\n"
                 "回答例（利用者の事実ではない）: 保存内容が『連絡手段はメール』で、"
                 "『変更後の連絡手段は？』と聞かれたら『メールだよ』と答える。"
                 "『変更後は聞いていない』とは答えない。\n"
@@ -323,6 +327,21 @@ class MemoryService:
                 prompt += "\n自動承認はオフ。変更は確認待ちとなり、保存済みと約束しない。"
             return MemoryTurn(user_text, prompt, tuple(memories), self._revision)
 
+    @contextmanager
+    def _transaction(self) -> Iterator[None]:
+        """記憶ロックを先に取り、保存失敗時は通知用の状態も戻す。"""
+
+        with self._lock:
+            candidates = list(self._last_candidates)
+            ambiguous = self._last_forget_ambiguous
+            try:
+                with self._repository._transaction():
+                    yield
+            except BaseException:
+                self._last_candidates = candidates
+                self._last_forget_ambiguous = ambiguous
+                raise
+
     def propose(
         self,
         user_text: str,
@@ -333,7 +352,7 @@ class MemoryService:
     ) -> list[MemoryEntry]:
         """意味による更新を優先し、旧形式の返答だけ従来の経路で扱う。"""
 
-        with self._lock:
+        with self._transaction():
             self.clear_last_candidates()
             if response.memory_updates is not None:
                 return self._apply_updates(user_text, response, conversation_id, turn)

@@ -424,11 +424,13 @@ class ApplicationBackend:
         settings.silence_duration = silence_duration
         settings.max_recording_duration = max_recording_duration
         settings.partial_interval = partial_interval
+        previous_recognizer = self._service.speech_recognizer
         try:
             recognizer = build_speech_recognizer(
                 self._runtime.audio,
                 self._runtime.project_root,
             )
+            self._service.set_speech_recognizer(recognizer)
             save_speech_recognition_settings(
                 self._audio_config_path,
                 normalized,
@@ -438,8 +440,9 @@ class ApplicationBackend:
                 max_recording_duration,
                 partial_interval,
             )
-            self._service.set_speech_recognizer(recognizer)
         except (ConfigError, RuntimeError) as exc:
+            if self._service.speech_recognizer is not previous_recognizer:
+                self._service.set_speech_recognizer(previous_recognizer)
             settings.provider = previous_engine
             settings.input_device = previous_device
             (
@@ -1213,8 +1216,8 @@ class ApplicationBackend:
             if callable(close_voice):
                 close_voice()
             wait_for_cleanup = getattr(self._service.voice_output, "_wait_for_cleanup", None)
-            if callable(wait_for_cleanup):
-                wait_for_cleanup()
+            if callable(wait_for_cleanup) and wait_for_cleanup() is False:
+                raise RuntimeError("音声の終了処理を完了できませんでした。")
 
 
 def _system_prompt(runtime: RuntimeConfig) -> str:

@@ -71,6 +71,11 @@ class WhisperSpeechRecognizer(SpeechRecognitionPort):
             return self._listening
 
     @property
+    def _is_running(self) -> bool:
+        with self._lock:
+            return self._thread is not None and self._thread.is_alive()
+
+    @property
     def status_text(self) -> str:
         if not self.is_available:
             return "Whisper未インストール"
@@ -97,6 +102,12 @@ class WhisperSpeechRecognizer(SpeechRecognitionPort):
         on_level: LevelCallback | None = None,
     ) -> None:
         with self._lock:
+            if self._thread is not None and self._thread.is_alive():
+                if self._stop_event.is_set():
+                    self._report(
+                        on_error, "前の音声認識の停止処理中です。少し待って再開してください。"
+                    )
+                return
             if self._listening:
                 return
             if not self.is_available:
@@ -116,20 +127,23 @@ class WhisperSpeechRecognizer(SpeechRecognitionPort):
             self._thread.start()
 
     def stop(self) -> None:
-        self._stop_event.set()
-        stream = self._stream
+        with self._lock:
+            self._stop_event.set()
+            stream = self._stream
+            thread = self._thread
+            self._listening = False
+            self._state = "停止処理中 (Whisper)"
         if stream is not None:
             with suppress(Exception):
                 stream.abort()
                 stream.close()
-        thread = self._thread
         if thread is not None and thread is not threading.current_thread():
             thread.join(timeout=3.0)
         with self._lock:
-            self._listening = False
-            self._stream = None
-            self._thread = None
-            self._state = "待機中 (Whisper)"
+            if self._thread is thread and (thread is None or not thread.is_alive()):
+                self._stream = None
+                self._thread = None
+                self._state = "待機中 (Whisper)"
 
     def finish(self) -> None:
         """録音だけを終え、取得済み音声の認識は継続する。"""
@@ -162,6 +176,8 @@ class WhisperSpeechRecognizer(SpeechRecognitionPort):
                     compute_type=self._compute_type,
                     download_root=str(self._model_root),
                 )
+            if self._stop_event.is_set():
+                return
             self._state = "聞き取り中 (Whisper)"
 
             def audio_callback(
@@ -190,6 +206,8 @@ class WhisperSpeechRecognizer(SpeechRecognitionPort):
             if audio and not self._stop_event.is_set():
                 self._state = "認識処理中 (Whisper)"
                 text = self._transcribe(audio, beam_size=5)
+                if self._stop_event.is_set():
+                    return
                 if text:
                     on_recognized(text)
                 else:
@@ -201,7 +219,8 @@ class WhisperSpeechRecognizer(SpeechRecognitionPort):
                     on_error, "音声を検出できませんでした。マイク選択と音量を確認してください。"
                 )
         except Exception as exc:
-            self._report(on_error, self._safe_error(exc))
+            if not self._stop_event.is_set():
+                self._report(on_error, self._safe_error(exc))
         finally:
             if on_level is not None:
                 on_level(0)
@@ -241,7 +260,7 @@ class WhisperSpeechRecognizer(SpeechRecognitionPort):
 
                 if spoken and on_partial is not None and elapsed >= next_partial:
                     partial = self._transcribe(b"".join(chunks), beam_size=1)
-                    if partial:
+                    if partial and not self._stop_event.is_set():
                         on_partial(partial)
                     next_partial = elapsed + self._partial_interval
                 if spoken and silence >= self._silence_duration:
