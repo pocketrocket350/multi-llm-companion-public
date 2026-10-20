@@ -71,6 +71,11 @@ class WhisperSpeechRecognizer(SpeechRecognitionPort):
             return self._listening
 
     @property
+    def _is_running(self) -> bool:
+        with self._lock:
+            return self._thread is not None and self._thread.is_alive()
+
+    @property
     def status_text(self) -> str:
         if not self.is_available:
             return "Whisper未インストール"

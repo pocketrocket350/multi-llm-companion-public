@@ -13,6 +13,7 @@ import pytest
 
 from multi_llm_companion.application import (
     ApplicationBackend,
+    ApplicationError,
     _engine_contract,
     _system_prompt,
     _to_ui_vmd_motion,
@@ -23,6 +24,7 @@ from multi_llm_companion.config import (
     AvatarConfig,
     BehaviorPolicyConfig,
     CharacterConfig,
+    ConfigError,
     PersonaConfig,
     ProviderConfig,
     ProvidersConfig,
@@ -334,6 +336,58 @@ def _runtime(tmp_path: Path) -> RuntimeConfig:
         ),
         database_path=tmp_path / "data" / "conversations.db",
     )
+
+
+@pytest.mark.parametrize("failure", ["worker_running", "save_failed"])
+def test_speech_settings_failure_preserves_recognizer_runtime_and_file(
+    tmp_path, monkeypatch, failure
+):
+    from multi_llm_companion.integrations import WhisperSpeechRecognizer
+    from multi_llm_companion.integrations.noop import NullSpeechRecognizer
+
+    backend = ApplicationBackend(_runtime(tmp_path))
+    old = WhisperSpeechRecognizer()
+    new = NullSpeechRecognizer()
+    backend._service.set_speech_recognizer(old)
+    previous = backend._runtime.audio.model_dump()
+    original_file = b"speech_recognition:\n  provider: whisper\nvoice_output:\n  enabled: false\n"
+    backend._audio_config_path.write_bytes(original_file)
+    monkeypatch.setattr(
+        "multi_llm_companion.application.build_speech_recognizer", lambda *args: new
+    )
+    release = Event()
+    worker = Thread(target=lambda: release.wait(8))
+    if failure == "worker_running":
+        old._thread = worker
+        worker.start()
+    else:
+
+        def fail_save(*args):
+            raise ConfigError("人工的な設定保存失敗")
+
+        monkeypatch.setattr(
+            "multi_llm_companion.application.save_speech_recognition_settings", fail_save
+        )
+    try:
+        with pytest.raises(ApplicationError):
+            backend.change_speech_settings("vosk", 1, 0.02, 0.8, 15.0, 2.0)
+        assert backend._service.speech_recognizer is old
+        assert backend._runtime.audio.model_dump() == previous
+        assert backend._audio_config_path.read_bytes() == original_file
+        if failure == "worker_running":
+            release.set()
+            worker.join(3)
+            backend.change_speech_settings("vosk", 1, 0.02, 0.8, 15.0, 2.0)
+            assert backend._service.speech_recognizer is new
+            assert backend._runtime.audio.speech_recognition.provider == "vosk"
+            saved = backend._audio_config_path.read_text(encoding="utf-8")
+            assert "provider: vosk" in saved
+            assert "voice_output:" in saved
+    finally:
+        release.set()
+        if worker.ident is not None:
+            worker.join(3)
+        backend.close()
 
 
 def test_external_permissions_default_on_and_provider_setup_preserves_opt_out(

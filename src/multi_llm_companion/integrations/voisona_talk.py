@@ -876,20 +876,15 @@ class VoiSonaTalkVoiceOutput(VoiceOutputPort):
             self.stop()
 
     def _wait_for_cleanup(self, timeout: float | None = None) -> bool:
-        """最終終了はHTTPの期限まで後始末を待ち、明示した場合だけ待機を打ち切る。"""
+        """最終終了は後始末を待ち、明示した場合だけ待機を打ち切る。"""
 
         with self._cleanup_changed:
             completed = self._cleanup_changed.wait_for(
                 lambda: (
                     self._cleanup_thread is None
-                    and (
-                        self._cleanup_failed
-                        or (
-                            self._client_users == 0
-                            and self._cleanup_queue.empty()
-                            and self._client.is_closed
-                        )
-                    )
+                    and self._client_users == 0
+                    and self._cleanup_queue.empty()
+                    and (self._client.is_closed or self._cleanup_failed)
                 ),
                 timeout=timeout,
             )
@@ -982,17 +977,10 @@ class VoiSonaTalkVoiceOutput(VoiceOutputPort):
                 self._cleanup_queue.task_done()
 
     def _delete_synthesis(self, request_uuid: str) -> None:
-        """終了済みクライアントだけは、削除待ちの非同期処理を安全に終える。"""
+        """削除の失敗を、後始末workerへ返して記録する。"""
 
-        try:
-            self._client.delete(f"{self._base_url}/speech-syntheses/{request_uuid}")
-        except httpx.HTTPError:
-            return
-        except RuntimeError:
-            with self._lock:
-                if self._is_closed:
-                    return
-            raise
+        response = self._client.delete(f"{self._base_url}/speech-syntheses/{request_uuid}")
+        response.raise_for_status()
 
     def _monitor_request(self, request_uuid: str, generation: int) -> None:
         """WAV生成完了を待ち、アプリ管理再生の終了まで監視する。"""

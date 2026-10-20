@@ -7,10 +7,17 @@ from types import SimpleNamespace
 import pytest
 
 from multi_llm_companion.integrations import VoskSpeechRecognizer, WhisperSpeechRecognizer
+from multi_llm_companion.integrations.noop import NullSpeechRecognizer
+from multi_llm_companion.providers import MockProvider
+from multi_llm_companion.services import ChatService
+from multi_llm_companion.storage import SQLiteConversationRepository
 
 
 @pytest.mark.parametrize("engine", ["whisper", "vosk"])
-def test_restart_is_rejected_until_stopped_worker_has_exited(tmp_path, monkeypatch, engine):
+@pytest.mark.parametrize("operation", ["restart", "replace"])
+def test_restart_is_rejected_until_stopped_worker_has_exited(
+    tmp_path, monkeypatch, request, engine, operation
+):
     streams = []
     entered, release = threading.Event(), threading.Event()
     recognized, errors = [], []
@@ -42,6 +49,13 @@ def test_restart_is_rejected_until_stopped_worker_has_exited(tmp_path, monkeypat
         if engine == "whisper"
         else VoskSpeechRecognizer(model_path=tmp_path)
     )
+    service = ChatService(
+        provider=MockProvider(),
+        repository=SQLiteConversationRepository(":memory:"),
+        speech_recognizer=recognizer,
+    )
+    request.addfinalizer(service.close)
+    replacement = NullSpeechRecognizer()
 
     def blocked(*args, **kwargs):
         entered.set()
@@ -57,13 +71,18 @@ def test_restart_is_rejected_until_stopped_worker_has_exited(tmp_path, monkeypat
     worker = recognizer._thread
     try:
         assert entered.wait(3)
-        recognizer.stop()
+        if operation == "restart":
+            recognizer.stop()
+            recognizer.start(recognized.append, errors.append)
+            assert errors and "停止処理中" in errors[-1]
+        else:
+            with pytest.raises(RuntimeError, match="停止処理中"):
+                service.set_speech_recognizer(replacement)
+            assert service.speech_recognizer is recognizer
         assert worker.is_alive()
-        recognizer.start(recognized.append, errors.append)
         assert recognizer._thread is worker
         assert recognizer._stop_event.is_set()
         assert len(streams) == 1
-        assert errors and "停止処理中" in errors[-1]
     finally:
         release.set()
         worker.join(5)
@@ -80,3 +99,6 @@ def test_restart_is_rejected_until_stopped_worker_has_exited(tmp_path, monkeypat
     assert len(streams) == 2
     assert not any("停止処理中" in message for message in errors)
     assert not recognizer.is_listening
+    if operation == "replace":
+        service.set_speech_recognizer(replacement)
+        assert service.speech_recognizer is replacement

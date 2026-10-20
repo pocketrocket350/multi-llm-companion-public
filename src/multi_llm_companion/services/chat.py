@@ -265,6 +265,10 @@ class ChatService:
 
         self._require_idle()
         self._speech_recognizer.stop()
+        if self._speech_recognizer._is_running:
+            raise ChatServiceError(
+                "前の音声認識の停止処理中です。少し待ってから設定を変更してください。"
+            )
         self._speech_recognizer = recognizer
 
     def set_system_prompt(self, system_prompt: str) -> None:
@@ -488,18 +492,18 @@ class ChatService:
                 or None,
             ):
                 with self._state_lock:
-                    if generation != self._stream_generation:
+                    if self._turn_cancelled(generation, cancelled):
                         self._last_stream_was_invalidated = True
                         return
                 chunks.append(chunk)
                 yield chunk
 
-            raw_text = self._provider.last_raw_response or "".join(chunks)
-            response = self._provider.last_response or parse_assistant_response(raw_text)
             with self._state_lock:
-                is_current = generation == self._stream_generation
+                is_current = not self._turn_cancelled(generation, cancelled)
                 self._last_stream_was_invalidated = not is_current
                 if is_current:
+                    raw_text = self._provider.last_raw_response or "".join(chunks)
+                    response = self._provider.last_response or parse_assistant_response(raw_text)
                     self._save_assistant_response(conversation_id, normalized, response)
         finally:
             self._image_processing = False
