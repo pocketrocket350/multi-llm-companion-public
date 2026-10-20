@@ -83,6 +83,12 @@ class VoskSpeechRecognizer(SpeechRecognitionPort):
         on_level: LevelCallback | None = None,
     ) -> None:
         with self._lock:
+            if self._thread is not None and self._thread.is_alive():
+                if self._stop_event.is_set():
+                    self._report(
+                        on_error, "前の音声認識の停止処理中です。少し待って再開してください。"
+                    )
+                return
             if self._listening:
                 return
             if not self._model_path.is_dir():
@@ -101,19 +107,21 @@ class VoskSpeechRecognizer(SpeechRecognitionPort):
             self._thread.start()
 
     def stop(self) -> None:
-        self._stop_event.set()
-        stream = self._stream
+        with self._lock:
+            self._stop_event.set()
+            stream = self._stream
+            thread = self._thread
+            self._listening = False
         if stream is not None:
             with suppress(Exception):
                 stream.abort()
                 stream.close()
-        thread = self._thread
         if thread is not None and thread is not threading.current_thread():
             thread.join(timeout=2.0)
         with self._lock:
-            self._listening = False
-            self._stream = None
-            self._thread = None
+            if self._thread is thread and (thread is None or not thread.is_alive()):
+                self._stream = None
+                self._thread = None
 
     def finish(self) -> None:
         """録音だけを終え、取得済み音声の認識は継続する。"""
@@ -132,6 +140,8 @@ class VoskSpeechRecognizer(SpeechRecognitionPort):
             from vosk import KaldiRecognizer, Model
 
             recognizer = KaldiRecognizer(Model(str(self._model_path)), self._sample_rate)
+            if self._stop_event.is_set():
+                return
 
             def audio_callback(
                 indata: bytes,
@@ -157,7 +167,8 @@ class VoskSpeechRecognizer(SpeechRecognitionPort):
             )
             self._capture(recognizer, on_recognized, on_error, on_partial)
         except Exception as exc:
-            self._report(on_error, self._safe_error(exc))
+            if not self._stop_event.is_set():
+                self._report(on_error, self._safe_error(exc))
         finally:
             if on_level is not None:
                 on_level(0)
@@ -204,7 +215,8 @@ class VoskSpeechRecognizer(SpeechRecognitionPort):
                         final_parts.append(found)
                 elif on_partial is not None:
                     partial = str(json.loads(recognizer.PartialResult()).get("partial", "")).strip()
-                    on_partial(" ".join([*final_parts, partial]).strip())
+                    if not self._stop_event.is_set():
+                        on_partial(" ".join([*final_parts, partial]).strip())
 
                 if spoken and silence >= self._silence_duration:
                     write_lip_sync_trace("recognition", "speech_end_detected")
@@ -213,6 +225,8 @@ class VoskSpeechRecognizer(SpeechRecognitionPort):
         if self._stop_event.is_set():
             return
         tail = str(json.loads(recognizer.FinalResult()).get("text", "")).strip()
+        if self._stop_event.is_set():
+            return
         if tail:
             final_parts.append(tail)
         text = " ".join(final_parts).strip()

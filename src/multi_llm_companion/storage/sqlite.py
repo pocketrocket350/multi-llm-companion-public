@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import sqlite3
 import threading
+from collections.abc import Iterator
+from contextlib import contextmanager
 from datetime import UTC, datetime
 from pathlib import Path
 from types import TracebackType
@@ -67,12 +69,28 @@ class SQLiteConversationRepository(ConversationRepository):
 
         return self._database_path
 
+    @contextmanager
+    def _transaction(self) -> Iterator[None]:
+        """入れ子の保存も、外側の確定まで同じロックとトランザクションに含める。"""
+
+        with self._lock:
+            self._ensure_open()
+            savepoint = f"write_{uuid4().hex}"
+            self._connection.execute(f"SAVEPOINT {savepoint}")
+            try:
+                yield
+                self._connection.execute(f"RELEASE SAVEPOINT {savepoint}")
+            except BaseException:
+                self._connection.execute(f"ROLLBACK TO SAVEPOINT {savepoint}")
+                self._connection.execute(f"RELEASE SAVEPOINT {savepoint}")
+                raise
+
     def create_conversation(self, title: str = "新しい会話") -> Conversation:
         normalized_title = title.strip() or "新しい会話"
         conversation_id = str(uuid4())
         now = _now_text()
         try:
-            with self._lock, self._connection:
+            with self._transaction():
                 self._ensure_open()
                 self._connection.execute(
                     """
@@ -142,7 +160,7 @@ class SQLiteConversationRepository(ConversationRepository):
             raise ValueError("会話の題名を入力してください")
         now = _now_text()
         try:
-            with self._lock, self._connection:
+            with self._transaction():
                 self._ensure_open()
                 cursor = self._connection.execute(
                     """
@@ -161,7 +179,7 @@ class SQLiteConversationRepository(ConversationRepository):
 
     def delete_conversation(self, conversation_id: str) -> bool:
         try:
-            with self._lock, self._connection:
+            with self._transaction():
                 self._ensure_open()
                 cursor = self._connection.execute(
                     "DELETE FROM conversations WHERE id = ?",
@@ -173,7 +191,7 @@ class SQLiteConversationRepository(ConversationRepository):
 
     def delete_all_conversations(self) -> int:
         try:
-            with self._lock, self._connection:
+            with self._transaction():
                 self._ensure_open()
                 cursor = self._connection.execute("DELETE FROM conversations")
                 return max(cursor.rowcount, 0)
@@ -200,7 +218,7 @@ class SQLiteConversationRepository(ConversationRepository):
         completion_tokens = usage.completion_tokens if usage is not None else None
         total_tokens = usage.total_tokens if usage is not None else None
         try:
-            with self._lock, self._connection:
+            with self._transaction():
                 self._ensure_open()
                 exists = self._connection.execute(
                     "SELECT 1 FROM conversations WHERE id = ?",
@@ -327,7 +345,7 @@ class SQLiteConversationRepository(ConversationRepository):
         normalized = _memory_content(content)
         now = _now_text()
         try:
-            with self._lock, self._connection:
+            with self._transaction():
                 self._ensure_open()
                 cursor = self._connection.execute(
                     """
@@ -377,7 +395,7 @@ class SQLiteConversationRepository(ConversationRepository):
         new_status = status or current.status
         now = _now_text()
         try:
-            with self._lock, self._connection:
+            with self._transaction():
                 self._ensure_open()
                 self._connection.execute(
                     """
@@ -396,7 +414,7 @@ class SQLiteConversationRepository(ConversationRepository):
 
     def delete_memory(self, memory_id: int) -> bool:
         try:
-            with self._lock, self._connection:
+            with self._transaction():
                 self._ensure_open()
                 cursor = self._connection.execute("DELETE FROM memories WHERE id = ?", (memory_id,))
                 return cursor.rowcount > 0
@@ -405,7 +423,7 @@ class SQLiteConversationRepository(ConversationRepository):
 
     def delete_all_memories(self) -> int:
         try:
-            with self._lock, self._connection:
+            with self._transaction():
                 self._ensure_open()
                 cursor = self._connection.execute("DELETE FROM memories")
                 return max(cursor.rowcount, 0)
@@ -437,7 +455,7 @@ class SQLiteConversationRepository(ConversationRepository):
         if selected:
             now = _now_text()
             try:
-                with self._lock, self._connection:
+                with self._transaction():
                     self._ensure_open()
                     self._connection.executemany(
                         "UPDATE memories SET last_used_at = ? WHERE id = ?",
@@ -462,7 +480,7 @@ class SQLiteConversationRepository(ConversationRepository):
     def save_emotion_state(self, state: EmotionState) -> EmotionState:
         now = _now_text()
         try:
-            with self._lock, self._connection:
+            with self._transaction():
                 self._ensure_open()
                 exists = self._connection.execute(
                     "SELECT 1 FROM conversations WHERE id = ?",

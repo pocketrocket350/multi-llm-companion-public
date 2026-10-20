@@ -730,26 +730,33 @@ class ChatService:
         if response.memory_updates is not None:
             # 更新案はこのターンでだけ扱い、棄却した案も会話履歴へ持ち越さない。
             response = response.model_copy(update={"memory_updates": []})
-        self._repository.add_message(
-            conversation_id,
-            "assistant",
-            response.speech,
-            response=response,
-            usage=usage,
-        )
-        self._avatar_controller.apply_response(response)
         state = None
-        if self._emotion_service is not None:
-            state = self._emotion_service.apply_response(conversation_id, response)
+        transaction = (
+            self._memory_service._transaction()
+            if self._memory_service is not None
+            else self._repository._transaction()
+        )
+        with transaction:
+            self._repository.add_message(
+                conversation_id,
+                "assistant",
+                response.speech,
+                response=response,
+                usage=usage,
+            )
+            if self._emotion_service is not None:
+                state = self._emotion_service.apply_response(conversation_id, response)
+            if self._memory_service is not None and propose_memory and user_text is not None:
+                self._memory_service.propose(
+                    user_text,
+                    memory_response,
+                    conversation_id,
+                    turn=self._memory_turn,
+                )
+        self._avatar_controller.apply_response(response)
+        if state is not None:
             self._last_emotion_state = state
             self._avatar_controller.apply_emotion_state(state)
-        if self._memory_service is not None and propose_memory and user_text is not None:
-            self._memory_service.propose(
-                user_text,
-                memory_response,
-                conversation_id,
-                turn=self._memory_turn,
-            )
         self.last_usage = usage
         self.last_response = response
         # UIは保存ロックを待たず、同じ回答の感情だけを一度に読み取る。

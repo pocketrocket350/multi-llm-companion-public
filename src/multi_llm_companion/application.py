@@ -1213,8 +1213,8 @@ class ApplicationBackend:
             if callable(close_voice):
                 close_voice()
             wait_for_cleanup = getattr(self._service.voice_output, "_wait_for_cleanup", None)
-            if callable(wait_for_cleanup):
-                wait_for_cleanup()
+            if callable(wait_for_cleanup) and wait_for_cleanup() is False:
+                raise RuntimeError("音声の終了処理を完了できませんでした。")
 
 
 def _system_prompt(runtime: RuntimeConfig) -> str:
